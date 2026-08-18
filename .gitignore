@@ -40,3 +40,7 @@ npm-debug.log*
 /Nohemi/
 .DS_Store
 _to_delete/
+
+# Von scripts/configure.mjs erzeugt – enthalten Schlüssel
+.env.local
+frontend/.env.local

@@ -70,8 +70,7 @@ php -l hostpoint/snapshot.php         # PHP-Syntax
 Dunkle, zurückhaltende Oberfläche; der Globus (NASA-Nachtaufnahme) trägt das Bild,
 Farbe kommt ausschliesslich von den Rubriken. Schrift: **Nohemi** in vier Schnitten.
 
-> Nohemi ist eine kommerzielle Schrift. Für den Livebetrieb wird eine Webfont-Lizenz
-> der Foundry benötigt — siehe `frontend/src/fonts/README.md`.
+> Nohemi ist lizenziert; die EULA liegt im Schriftpaket unter `Nohemi/License/`.
 
 ## Lizenz und Daten
 
