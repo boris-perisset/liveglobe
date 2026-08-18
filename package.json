@@ -1,0 +1,18 @@
+{
+  "name": "globenews",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Nachrichten auf einem drehbaren Globus – verortet dort, wo sie passieren.",
+  "scripts": {
+    "sync:catmap": "node scripts/sync-category-map.mjs",
+    "check:catmap": "node scripts/sync-category-map.mjs --check",
+    "seed:sources": "node scripts/seed-sources.mjs",
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm run sync:catmap && npm --prefix frontend run build",
+    "deploy:function": "npm run sync:catmap && supabase functions deploy ingest"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

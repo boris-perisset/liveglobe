@@ -1,0 +1,66 @@
+# Globe News – Apache-Konfiguration für Hostpoint
+# Diese Datei wird zusammen mit dem Frontend-Build ins Web-Root deployt.
+
+# ------------------------------------------------------------------ HTTPS erzwingen
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # Vorkomprimierte Snapshots ausliefern, wenn der Browser gzip kann.
+  RewriteCond %{HTTP:Accept-Encoding} gzip
+  RewriteCond %{DOCUMENT_ROOT}/$1.gz -f
+  RewriteRule ^(data/.+\.json)$ /$1.gz [L]
+
+  # SPA-Fallback: alles, was keine Datei ist, geht an index.html.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+
+<FilesMatch "\.json\.gz$">
+  Header set Content-Encoding gzip
+  Header set Content-Type "application/json; charset=utf-8"
+</FilesMatch>
+
+# ------------------------------------------------------------------ Kompression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain \
+    application/javascript application/json image/svg+xml
+</IfModule>
+
+# ------------------------------------------------------------------ Caching
+<IfModule mod_expires.c>
+  ExpiresActive On
+  # Vite-Assets tragen einen Hash im Namen – dürfen lange liegen bleiben.
+  <FilesMatch "\.(js|css|jpg|png|svg|woff2)$">
+    ExpiresDefault "access plus 1 year"
+    Header set Cache-Control "public, immutable"
+  </FilesMatch>
+  # Snapshots werden alle 5 Minuten neu geschrieben.
+  <FilesMatch "^latest\.json(\.gz)?$">
+    ExpiresDefault "access plus 2 minutes"
+    Header set Cache-Control "public, max-age=120"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    ExpiresDefault "access plus 0 seconds"
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+# ------------------------------------------------------------------ Sicherheit
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# Konfiguration und Cron-Skript nicht über den Browser erreichbar machen.
+<FilesMatch "^(snapshot\.php|snapshot\.config.*\.php)$">
+  Require all denied
+</FilesMatch>
+
+Options -Indexes

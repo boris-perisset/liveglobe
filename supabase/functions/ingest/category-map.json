@@ -1,0 +1,177 @@
+{
+  "_readme": "Zuordnung GDELT-GKG-Theme -> Rubrik. 'themes' sind Präfixe (case-insensitive). 'query' ist der GDELT-Suchausdruck, mit dem diese Rubrik pro Ingest-Lauf abgefragt wird. Reihenfolge = Priorität bei Mehrfachtreffern.",
+  "categories": [
+    {
+      "id": "natural_disasters",
+      "label": "Naturkatastrophen",
+      "color": "#E07A5F",
+      "themes": [
+        "NATURAL_DISASTER",
+        "DISASTER",
+        "EARTHQUAKE",
+        "FLOOD",
+        "WILDFIRE",
+        "VOLCANO",
+        "TSUNAMI",
+        "LANDSLIDE"
+      ],
+      "query": "(theme:NATURAL_DISASTER OR theme:DISASTER_EARTHQUAKE OR theme:DISASTER_FLOOD OR theme:WILDFIRE OR theme:DISASTER_VOLCANO)"
+    },
+    {
+      "id": "conflicts",
+      "label": "Konflikte",
+      "color": "#C4514E",
+      "themes": [
+        "ARMEDCONFLICT",
+        "MILITARY",
+        "KILL",
+        "WOUND",
+        "REBELLION",
+        "TERROR",
+        "SIEGE",
+        "WEAPONS"
+      ],
+      "query": "(theme:ARMEDCONFLICT OR theme:MILITARY OR theme:TERROR OR theme:REBELLION)"
+    },
+    {
+      "id": "peace_talks",
+      "label": "Friedensgespräche",
+      "color": "#6FBF8E",
+      "themes": [
+        "PEACE",
+        "NEGOTIATIONS",
+        "CEASEFIRE",
+        "TREATY",
+        "MEDIATION",
+        "RECONCILIATION"
+      ],
+      "query": "(theme:PEACEKEEPING OR theme:NEGOTIATIONS OR theme:CEASEFIRE OR theme:PEACE_TALKS)"
+    },
+    {
+      "id": "politics",
+      "label": "Politik",
+      "color": "#7B93DB",
+      "themes": [
+        "ELECTION",
+        "LEGISLATION",
+        "GOVERNMENT",
+        "PROTEST",
+        "DEMOCRACY",
+        "CORRUPTION",
+        "IMPEACHMENT",
+        "REFERENDUM"
+      ],
+      "query": "(theme:ELECTION OR theme:LEGISLATION OR theme:PROTEST OR theme:GENERAL_GOVERNMENT)"
+    },
+    {
+      "id": "diplomacy",
+      "label": "Diplomatie",
+      "color": "#5FBCD3",
+      "themes": [
+        "DIPLOMA",
+        "UNGA",
+        "SUMMIT",
+        "ALLIANCE",
+        "SANCTIONS",
+        "TRADE_AGREEMENT",
+        "EMBASSY"
+      ],
+      "query": "(theme:DIPLOMATIC_COOPERATION OR theme:UNGA OR theme:SANCTIONS OR theme:ALLIANCE)"
+    },
+    {
+      "id": "accidents",
+      "label": "Unfälle",
+      "color": "#DCA84E",
+      "themes": [
+        "ACCIDENT",
+        "TRANSPORT_CRASH",
+        "FIRE",
+        "EXPLOSION",
+        "MANMADE_DISASTER",
+        "TRAIN_CRASH",
+        "AIR_CRASH"
+      ],
+      "query": "(theme:MANMADE_DISASTER OR theme:TRANSPORT_ACCIDENT OR theme:FIRE OR theme:EXPLOSION)"
+    },
+    {
+      "id": "sports",
+      "label": "Sport",
+      "color": "#9ACD5B",
+      "themes": [
+        "SPORT",
+        "SOCCER",
+        "OLYMPIC",
+        "ATHLET",
+        "FOOTBALL",
+        "CRICKET",
+        "TENNIS"
+      ],
+      "query": "(theme:SOC_SPORTS OR theme:OLYMPICS OR theme:WB_SPORT)"
+    },
+    {
+      "id": "culture",
+      "label": "Kultur",
+      "color": "#B18AD6",
+      "themes": [
+        "CULTURE",
+        "MEDIA_MSM",
+        "FILM",
+        "MUSIC",
+        "LITERATURE",
+        "HERITAGE",
+        "RELIGION_FESTIVAL"
+      ],
+      "query": "(theme:MEDIA_MSM OR theme:CULTURAL_HERITAGE OR theme:MOVEMENT_GENERAL)"
+    },
+    {
+      "id": "art",
+      "label": "Kunst",
+      "color": "#DE87B4",
+      "themes": [
+        "ART",
+        "MUSEUM",
+        "EXHIBITION",
+        "GALLERY",
+        "ARCHITECTURE_DESIGN"
+      ],
+      "query": "(theme:ARTS OR theme:MUSEUM OR theme:EXHIBITION)"
+    },
+    {
+      "id": "weather",
+      "label": "Wetter",
+      "color": "#9FB6C7",
+      "themes": [
+        "WEATHER",
+        "HEATWAVE",
+        "DROUGHT",
+        "STORM",
+        "HURRICANE",
+        "SNOW",
+        "COLDWAVE"
+      ],
+      "query": "(theme:NATURAL_DISASTER_STORM OR theme:DROUGHT OR theme:HEAT_WAVE OR theme:WEATHER)"
+    },
+    {
+      "id": "nature",
+      "label": "Natur & Umwelt",
+      "color": "#4F9E72",
+      "themes": [
+        "ENV_",
+        "WILDLIFE",
+        "CLIMATE",
+        "BIODIVERSITY",
+        "DEFORESTATION",
+        "CONSERVATION",
+        "POLLUTION"
+      ],
+      "query": "(theme:ENV_CLIMATECHANGE OR theme:ENV_BIODIVERSITY OR theme:WILDLIFE OR theme:ENV_DEFORESTATION)"
+    },
+    {
+      "id": "other",
+      "label": "Übriges",
+      "color": "#7B808A",
+      "themes": [],
+      "query": ""
+    }
+  ]
+}

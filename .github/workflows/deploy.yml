@@ -1,0 +1,63 @@
+name: Build & Deploy nach Hostpoint
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hostpoint
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Abhängigkeiten installieren
+        working-directory: frontend
+        run: npm ci
+
+      - name: Frontend bauen
+        working-directory: frontend
+        env:
+          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_SNAPSHOT_URL: ./data/latest.json
+        run: npm run build
+
+      - name: Hostpoint-Dateien beilegen
+        run: |
+          cp hostpoint/.htaccess                     frontend/dist/.htaccess
+          cp hostpoint/snapshot.php                  frontend/dist/snapshot.php
+          cp hostpoint/snapshot.config.example.php   frontend/dist/snapshot.config.example.php
+          mkdir -p frontend/dist/data
+          # data/ und die echte Konfiguration bleiben auf dem Server unangetastet
+          touch frontend/dist/data/.keep
+
+      - name: SSH-Key einrichten
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.HOSTPOINT_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${{ vars.HOSTPOINT_SSH_PORT || 22 }}" -H "${{ vars.HOSTPOINT_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Per rsync deployen
+        run: |
+          rsync -avz --delete \
+            --exclude 'data/***' \
+            --exclude 'snapshot.config.php' \
+            -e "ssh -p ${{ vars.HOSTPOINT_SSH_PORT || 22 }} -i ~/.ssh/id_ed25519" \
+            frontend/dist/ \
+            "${{ vars.HOSTPOINT_USER }}@${{ vars.HOSTPOINT_HOST }}:${{ vars.HOSTPOINT_PATH }}/"
+
+      - name: Aufräumen
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519

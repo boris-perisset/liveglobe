@@ -1,0 +1,42 @@
+# Abhängigkeiten
+node_modules/
+.pnp/
+.pnp.js
+
+# Builds
+frontend/dist/
+frontend/public/textures/     # werden beim Build aus three-globe kopiert
+
+# Umgebungsvariablen und Keys – NIE committen
+.env
+.env.*
+!.env.example
+hostpoint/snapshot.config.php
+
+# Snapshots, die zur Laufzeit entstehen
+hostpoint/data/
+frontend/public/data/*.json
+!frontend/public/data/latest.demo.json
+
+# Supabase CLI
+supabase/.branches/
+supabase/.temp/
+.supabase/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
+
+# Vollständiges Nohemi-Paket (liegt lokal im Projektordner).
+# Im Repo sind nur die vier tatsächlich genutzten woff2 unter frontend/src/fonts.
+/Nohemi/
+.DS_Store
+_to_delete/
