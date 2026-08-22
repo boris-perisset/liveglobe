@@ -55,17 +55,25 @@ Project Settings → API. Er ist NICHT derselbe wie der anon-Schlüssel.
 }
 
 /**
- * Prüfen, ob wirklich der service_role-Schlüssel eingetragen ist.
+ * Prüfen, ob wirklich ein schreibberechtigter Schlüssel eingetragen ist.
  *
- * In .env.local stand bisher zweimal derselbe Wert — beide JWTs trugen
+ * In .env.local stand einmal zweimal derselbe Wert — beide JWTs trugen
  * `role = anon`. Ein anon-Schlüssel darf wegen der Zeilenrechte nicht
  * schreiben; der Lauf liefe dann bis zum Ende durch und schriebe **nichts**.
  * Ein stiller Fehlschlag ist schlimmer als ein lauter, deshalb hier der Blick
  * in den Schlüssel selbst.
+ *
+ * Zwei Formen sind erlaubt:
+ *   `sb_secret_…`  der neue Geheimschlüssel. Kein JWT, nichts abzulesen —
+ *                  er trägt seine Rolle im Namen und lässt sich einzeln
+ *                  zurückziehen, wenn er einmal irgendwo auftaucht.
+ *   `eyJ…`         der alte service_role-JWT. Läuft Ende 2026 aus.
  */
-function rolle(jwt) {
+function rolle(schluessel) {
+  if (schluessel.startsWith("sb_secret_")) return "service_role";
+  if (schluessel.startsWith("sb_publishable_")) return "anon";
   try {
-    const teil = jwt.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const teil = schluessel.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
     return JSON.parse(Buffer.from(teil, "base64").toString()).role ?? "?";
   } catch {
     return "?";
@@ -73,13 +81,14 @@ function rolle(jwt) {
 }
 if (rolle(SERVICE) !== "service_role") {
   console.error(`
-Der eingetragene SUPABASE_SERVICE_ROLE_KEY trägt die Rolle "${rolle(SERVICE)}",
-nicht "service_role".
+Der eingetragene SUPABASE_SERVICE_ROLE_KEY hat keine Schreibrechte
+(erkannte Rolle: "${rolle(SERVICE)}").
 
-Mit einer anon-Rolle blockieren die Zeilenrechte jedes Schreiben — der Lauf
-liefe durch und schriebe trotzdem nichts. Deshalb bricht er hier ab.
+Ohne sie blockieren die Zeilenrechte jedes Schreiben — der Lauf liefe durch
+und schriebe trotzdem nichts. Deshalb bricht er hier ab.
 
-Richtigen Schlüssel holen: Supabase → Project Settings → API → service_role.
+Richtigen Schlüssel holen: Supabase → Project Settings → API Keys →
+secret key (sb_secret_…).
 `);
   process.exit(1);
 }

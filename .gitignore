@@ -15,6 +15,12 @@ frontend/.geo-cache/          # Zwischenstand fuer das Zeichnen der Vektorkarte
 !.env.example
 hostpoint/snapshot.config.php
 
+# Schluessel fuer den Tresor. Nur die Vorlage gehoert ins Repo.
+# Am 22.08. hat GitGuardian einen service_role-Schluessel in 0002_cron.sql
+# gemeldet – er stand im Klartext in einer versionierten Migration.
+supabase/secrets/*.sql
+!supabase/secrets/*.example.sql
+
 # Snapshots, die zur Laufzeit entstehen
 hostpoint/data/
 frontend/public/data/*.json
@@ -53,3 +59,9 @@ _to_delete/
 
 # Fertiges Hostpoint-Paket, wird bei Bedarf neu gebaut
 upload/
+
+# Reste des Netzlaufwerks: Wird eine Datei ueberschrieben, waehrend etwas sie
+# offen haelt, legt FUSE die alte Fassung unter diesem Namen ab. Das waren am
+# 22.08. drei Kopien alter .env.local mit Schluesseln darin – und .env.* greift
+# bei diesem Namen nicht.
+.fuse_hidden*
