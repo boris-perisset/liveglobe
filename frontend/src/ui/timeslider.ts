@@ -1,7 +1,11 @@
+import { locale, t } from "../i18n";
+
 export interface TimeSliderOptions {
   container: HTMLElement;
   /** Wie weit zurück der Slider reicht (Detaildaten liegen 8 Tage vor) */
   maxHoursBack: number;
+  /** Beim Neuaufbau (Sprachwechsel) das bisherige Zeitfenster übernehmen. */
+  fenster?: number;
   onChange: (until: Date, windowHours: number) => void;
 }
 
@@ -10,7 +14,7 @@ export interface TimeSliderOptions {
  * grössere Sprünge. Position 0 = jetzt.
  */
 export function createTimeSlider(opts: TimeSliderOptions) {
-  const { container, maxHoursBack, onChange } = opts;
+  const { container, maxHoursBack, fenster, onChange } = opts;
   container.innerHTML = "";
 
   const label = document.createElement("div");
@@ -26,37 +30,38 @@ export function createTimeSlider(opts: TimeSliderOptions) {
   slider.step = "1";
   slider.value = "0";
   slider.className = "timebar__slider";
-  slider.setAttribute("aria-label", "Zeitpunkt wählen");
+  slider.setAttribute("aria-label", t("time.pick"));
 
   const date = document.createElement("input");
   date.type = "date";
   date.className = "timebar__date";
-  date.setAttribute("aria-label", "Datum wählen");
+  date.setAttribute("aria-label", t("time.pickDate"));
   date.max = toDateInput(new Date());
   date.min = toDateInput(new Date(Date.now() - maxHoursBack * 3600_000));
   date.value = toDateInput(new Date());
 
   const windowSelect = document.createElement("select");
   windowSelect.className = "timebar__window";
-  windowSelect.setAttribute("aria-label", "Zeitfenster");
-  for (const [h, text] of [[1, "1 Std."], [6, "6 Std."], [24, "24 Std."], [72, "3 Tage"]] as const) {
+  windowSelect.setAttribute("aria-label", t("time.windowAria"));
+  for (const [h, key] of
+    [[1, "time.window1"], [6, "time.window6"], [24, "time.window24"], [72, "time.window72"]] as const) {
     const o = document.createElement("option");
     o.value = String(h);
-    o.textContent = text;
-    if (h === 24) o.selected = true;
+    o.textContent = t(key);
+    if (h === (fenster ?? 24)) o.selected = true;
     windowSelect.appendChild(o);
   }
 
   const nowBtn = document.createElement("button");
   nowBtn.type = "button";
   nowBtn.className = "timebar__now";
-  nowBtn.textContent = "Jetzt";
+  nowBtn.textContent = t("time.now");
 
   row.append(slider, windowSelect, date, nowBtn);
   container.append(label, row);
 
   let until = new Date();
-  let windowHours = 24;
+  let windowHours = fenster ?? 24;
 
   function currentUntil(): Date {
     const offset = Number(slider.value);
@@ -101,7 +106,7 @@ export function createTimeSlider(opts: TimeSliderOptions) {
 }
 
 function fmt(d: Date): string {
-  return d.toLocaleString("de-CH", {
+  return d.toLocaleString(locale(), {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",

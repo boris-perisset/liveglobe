@@ -25,16 +25,27 @@ export interface CategoryDef {
 /**
  * Ein Punkt auf dem Globus.
  *
- * Zwei Herkünfte, dieselbe Form: In der weiten Ansicht eine Rasterzelle aus
- * `articles_clustered`, beim Hineinzoomen ein einzelnes Ereignis aus
- * `events_in_bounds`. Nur im zweiten Fall ist `event_id` gesetzt — daran
- * erkennt der Klick, ob er einem Umkreis oder einem Geschehen gilt.
+ * Eine Herkunft, eine Bedeutung: `event_bubbles` liefert **immer Ereignisse**,
+ * auf jeder Zoomstufe — mal zu einer Zelle zusammengefasst, mal einzeln. Was
+ * sich beim Zoomen ändert, ist die Zellgrösse, nicht der Gegenstand.
+ *
+ * `ereignisse` entscheidet, was ein Klick bedeutet: mehr als eines heisst
+ * „näher heran", genau eines heisst „Panel auf".
  */
 export interface Cluster {
   /** Gesetzt, wenn dieser Punkt genau ein Ereignis ist. */
   event_id?: number;
-  /** Zahl der berichtenden Medien; nur bei Ereignissen bekannt. */
+  /**
+   * Gesetzt, wenn dieser Punkt eine einzelne Meldung ohne Ereigniszuordnung
+   * ist. Genau eines von beiden trägt einen Wert, nie beide.
+   */
+  article_id?: number;
+  /** Zahl der berichtenden Medien; bei einer Gruppe die weiteste darin. */
   outlets?: number;
+  /** Wie viele **Orte** in diesem Punkt stecken — zur Beschriftung. */
+  orte?: number;
+  /** Wie viele Ereignisse in diesem Punkt stecken — das steuert den Klick. */
+  ereignisse?: number;
   lat: number;
   lon: number;
   /** Anzahl Artikel in diesem Pin */
@@ -106,6 +117,7 @@ export interface EventGroup {
 export type OwnershipId = "state" | "public" | "private" | "nonprofit" | "unknown";
 
 export type TargetLang = "off" | "de" | "en";
+export type UiLang = "en" | "de";
 
 /** Ein Eintrag im Quellen-Abschnitt des Einstellungspanels. */
 export interface SourceDef {
@@ -124,11 +136,19 @@ export interface OwnershipDef {
   note?: string;
 }
 
-/** Dauerhafte Vorlieben – im Browser gespeichert, nicht Teil der teilbaren URL. */
+/**
+ * Dauerhafte Vorlieben – im Browser gespeichert, nicht Teil der teilbaren URL.
+ *
+ * `uiLang` steuert Oberfläche **und** Zielsprache der Übersetzung; ob überhaupt
+ * übersetzt wird, entscheidet `translateHeadlines`. Vorher gab es dafür einen
+ * Wert mit drei Zuständen (`off | de | en`) — das ging nicht mehr, sobald
+ * dieselbe Wahl auch die Oberfläche bestimmt: „aus" ist keine Sprache.
+ */
 export interface Settings {
   connectors: Set<string>;
   ownership: Set<OwnershipId>;
-  language: TargetLang;
+  uiLang: UiLang;
+  translateHeadlines: boolean;
 }
 
 export interface Filters {

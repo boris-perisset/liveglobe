@@ -1,23 +1,36 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Globe News – Nachrichten auf dem Globus</title>
-  <meta name="description" content="Ein drehbarer Globus mit aktuellen Nachrichten, verortet dort, wo sie passieren.">
+  <title>Live Globe — news on a globe</title>
+  <meta name="description" content="A spinning globe of current news, placed where the events happen.">
   <meta name="color-scheme" content="dark">
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
 
+  <!-- ------------------------------------------------------------------
+       Sprache.
 
+       Englisch steht im Markup, Deutsch kommt aus `src/i18n.ts`. Das hat
+       zwei Gründe: Das Projekt richtet sich an Leute aus Medienhäusern weit
+       über die Deutschschweiz hinaus — und der Grundbestand im Markup ist
+       zugleich die Rückfallebene, falls das Skript nicht läuft.
+
+       `data-i18n`       ersetzt den Textinhalt
+       `data-i18n-html`  ersetzt den Inhalt samt Markup (nur für Sätze mit Link)
+       `data-i18n-attr`  ersetzt Attribute, Form "aria-label:kennung"
+  ------------------------------------------------------------------- -->
 </head>
 <body>
   <div id="app">
-    <div id="globe" role="application" aria-label="Weltkugel mit Nachrichten-Pins"></div>
+    <div id="globe" role="application" data-i18n-attr="aria-label:nav.globe"
+         aria-label="Globe with news markers"></div>
 
     <header class="topbar">
       <div class="brand">
         <button id="settings-toggle" class="gear" type="button"
-                aria-label="Einstellungen" aria-expanded="false" aria-controls="settings">
+                data-i18n-attr="aria-label:nav.settings"
+                aria-label="Settings" aria-expanded="false" aria-controls="settings">
           <svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true" fill="none"
                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="10" cy="10" r="2.6"/>
@@ -25,7 +38,8 @@
           </svg>
         </button>
         <button id="info-toggle" class="gear" type="button"
-                aria-label="Über dieses Projekt" aria-haspopup="dialog">
+                data-i18n-attr="aria-label:nav.info"
+                aria-label="About this project" aria-haspopup="dialog">
           <svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true" fill="none"
                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="10" cy="10" r="7.7"/>
@@ -33,8 +47,10 @@
             <circle cx="10" cy="6.4" r=".95" fill="currentColor" stroke="none"/>
           </svg>
         </button>
-        <h1 class="brand__name">Globe News</h1>
-        <span class="brand__claim">Nachrichten dort, wo sie passieren</span>
+        <!-- Der Name läuft bewusst nicht durch die Übersetzung: Ein
+             Produktname ist keine Vokabel und heisst in jeder Sprache gleich. -->
+        <h1 class="brand__name">Live Globe</h1>
+        <span class="brand__claim" data-i18n="app.claim">News where it happens</span>
       </div>
       <nav id="filters" class="filters"></nav>
     </header>
@@ -42,8 +58,10 @@
     <div id="timebar" class="timebar"></div>
     <p id="status" class="status" role="status" aria-live="polite"></p>
 
-    <aside id="settings" class="settings" aria-label="Einstellungen" inert></aside>
-    <aside id="panel" class="panel" aria-label="Meldungen an diesem Ort" inert></aside>
+    <aside id="settings" class="settings" data-i18n-attr="aria-label:nav.settings"
+           aria-label="Settings" inert></aside>
+    <aside id="panel" class="panel" data-i18n-attr="aria-label:panel.aria"
+           aria-label="Reports at this location" inert></aside>
     <!-- Quellenangaben stehen im Attributions-Feld der Karte (siehe src/map/map.ts):
          eine Zeile für Kartendaten und Meldungen statt zweier konkurrierender. -->
 
@@ -53,13 +71,10 @@
          Als <dialog>, nicht als selbstgebautes Overlay: Fokusfalle,
          Escape-Taste und das Ausblenden des Hintergrunds für Screenreader
          bringt das Element von sich aus mit.
-
-         Der Inhalt steht im Markup statt im TypeScript — er ist Text, kein
-         Verhalten, und soll sich ohne Bauschritt korrigieren lassen.
     ----------------------------------------------------------------- -->
     <dialog id="info" class="info" aria-labelledby="info-titel">
       <form method="dialog" class="info__schliessen">
-        <button class="gear" aria-label="Schliessen">
+        <button class="gear" data-i18n-attr="aria-label:nav.close" aria-label="Close">
           <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" fill="none"
                stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
             <path d="M5 5l10 10M15 5L5 15"/>
@@ -68,176 +83,174 @@
       </form>
 
       <div class="info__inhalt">
-        <h2 id="info-titel" class="info__titel">Über dieses Projekt</h2>
+        <h2 id="info-titel" class="info__titel" data-i18n="info.title">About this project</h2>
 
-        <p class="info__lead">
-          Globe News zeigt, wo Nachrichten herkommen — und wie weit sie reisen.
-          Statt eine weitere Nachrichtensammlung zu sein, macht die Seite die
-          Bewegung von Aufmerksamkeit durch die Medienlandschaft sichtbar:
-          wer berichtet, wer schweigt, und wann eine Meldung Länder- und
-          Sprachgrenzen überschreitet.
+        <p class="info__lead" data-i18n="info.lead1">
+          Live Globe shows where news comes from — and how far it travels.
+          Rather than being another news aggregator, it makes the movement of
+          attention through the media landscape visible: who reports, who stays
+          silent, and when a story crosses a border or a language.
         </p>
 
-        <p class="info__lead">
-          Das ist ein Denkanstoss, keine Forschungsarbeit. Die Zuordnung von
-          Meldungen zu Orten, Rubriken und Ereignissen bleibt eine Schätzung —
-          jeder Pin führt deshalb zur Originalquelle, damit man selbst nachsehen
-          kann. Artikelinhalte werden nicht gespeichert, nur Metadaten und Links.
+        <p class="info__lead" data-i18n="info.lead2">
+          This is a prompt for thought, not a research instrument. Assigning
+          reports to places, topics and events remains an estimate — which is
+          why every marker leads to the original source, so you can look for
+          yourself. Article contents are not stored, only metadata and links.
         </p>
 
         <section class="info__block info__block--herkunft">
-          <h3>Inspiration</h3>
-          <p>
-            Der Ausgangspunkt ist
+          <h3 data-i18n="info.inspiration.h">Where the idea comes from</h3>
+          <p data-i18n-html="info.inspiration.p1">
+            The starting point is
             <a href="https://radio.garden/" target="_blank" rel="noopener">radio.garden</a> —
-            eine Weltkugel, auf der Radiostationen dort stehen, wo sie senden.
-            Ich zitiere die Seite regelmässig in meinem UX/UI-Unterricht als
-            Beispiel dafür, wie viel eine Darstellung leisten kann, die über das
-            Auflisten der Daten hinausgeht. Dieselben Sender in einer Tabelle
-            wären ein Verzeichnis. Auf dem Globus werden sie zu einer Erfahrung
-            von Nähe und Entfernung: Man dreht die Kugel und hört, wie weit weg
-            die Welt klingt.
+            a globe with radio stations standing where they broadcast. I cite it
+            regularly in my UX/UI teaching as an example of how much a
+            representation can achieve beyond listing the data. The same stations
+            in a table would be a directory. On the globe they become an
+            experience of nearness and distance: you turn the sphere and hear how
+            far away the world sounds.
           </p>
-          <p>
-            Globe News überträgt diesen Gedanken auf Nachrichten. Aus
-            Radiostationen werden Medienhäuser, aus dem Sendegebiet der Ort des
-            Geschehens. Die Frage dahinter bleibt dieselbe — was zeigt eine
-            Karte, das eine Liste nicht zeigen kann?
+          <p data-i18n="info.inspiration.p2">
+            Live Globe carries that idea over to the news. Radio stations become
+            media outlets, the broadcast area becomes the place where something
+            happened. The question behind it stays the same — what does a map
+            show that a list cannot?
           </p>
         </section>
 
         <section class="info__block">
-          <h3>Verantwortlich</h3>
+          <h3 data-i18n="info.responsible.h">Responsible</h3>
           <p>
-            Boris Périsset · Konzept, Gestaltung und Umsetzung.<br>
+            <span data-i18n-html="info.responsible.p"><a href="https://atelier-perisset.ch/"
+                  target="_blank" rel="noopener">Boris Périsset</a> · concept, design and implementation.</span><br>
             <span class="info__platzhalter">[Kontaktadresse ergänzen]</span>
           </p>
         </section>
 
         <section class="info__block">
-          <h3>Ohne diese Projekte gäbe es die Seite nicht</h3>
-          <p class="info__dank">
-            Alles hier steht auf Arbeit, die andere frei zugänglich gemacht
-            haben — oft über Jahre und meist unbezahlt. Dafür einen herzlichen
-            Dank an alle Beteiligten.
+          <h3 data-i18n="info.thanks.h">This site would not exist without these projects</h3>
+          <p class="info__dank" data-i18n="info.thanks.intro">
+            Everything here rests on work that others made freely available —
+            often over years and mostly unpaid. Warm thanks to everyone involved.
           </p>
 
-          <h4>Daten</h4>
+          <h4 data-i18n="info.h.data">Data</h4>
           <ul class="info__liste">
             <li>
               <a href="https://www.gdeltproject.org/" target="_blank" rel="noopener">The GDELT Project</a>
-              <span>Meldungen, Orte und Themen · frei für nicht-kommerzielle Nutzung</span>
+              <span data-i18n="info.d.gdelt">Reports, places and topics · free for non-commercial use</span>
             </li>
             <li>
               <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
-              <span>Kartendaten · © OpenStreetMap-Mitwirkende, ODbL 1.0</span>
+              <span data-i18n="info.d.osm">Map data · © OpenStreetMap contributors, ODbL 1.0</span>
             </li>
             <li>
               <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a>
-              <span>Ländergrenzen · Public Domain</span>
+              <span data-i18n="info.d.naturalearth">Country borders · public domain</span>
             </li>
             <li>
               <a href="https://iptc.org/standards/media-topics/" target="_blank" rel="noopener">IPTC Media Topics</a>
-              <span>Rubriken-Taxonomie · CC BY 4.0</span>
+              <span data-i18n="info.d.iptc">Topic taxonomy · CC BY 4.0</span>
             </li>
             <li>
               <a href="https://www.mediacloud.org/" target="_blank" rel="noopener">Media Cloud</a>
-              <span>
-                Register der Medienhäuser — Land, Region, Sprache und
-                Erscheinungshäufigkeit. Ein akademisches Vorhaben mit offenem
-                Zugang; der API-Client steht unter Apache 2.0.
+              <span data-i18n="info.d.mediacloud">
+                Register of media outlets — country, region, language and
+                publishing frequency. An academic undertaking with open access;
+                the API client is Apache 2.0.
               </span>
             </li>
             <li>
               <a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata</a>
-              <span>Redaktionssitze der Medienhäuser · CC0 1.0</span>
+              <span data-i18n="info.d.wikidata">Editorial addresses of media outlets · CC0 1.0</span>
             </li>
             <li>
               <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">Nominatim</a>
-              <span>Ortssuche beim Verorten von Redaktionen · © OpenStreetMap-Mitwirkende, ODbL 1.0</span>
+              <span data-i18n="info.d.nominatim">Place search when locating newsrooms · © OpenStreetMap contributors, ODbL 1.0</span>
             </li>
             <li>
               <a href="https://www.geonames.org/" target="_blank" rel="noopener">GeoNames</a>
-              <span>Ortsauflösung · CC BY 4.0</span>
+              <span data-i18n="info.d.geonames">Place resolution · CC BY 4.0</span>
             </li>
           </ul>
 
-          <h4>Karte</h4>
+          <h4 data-i18n="info.h.map">Map</h4>
           <ul class="info__liste">
             <li>
               <a href="https://maplibre.org/" target="_blank" rel="noopener">MapLibre GL JS</a>
-              <span>Globus und Kartendarstellung · BSD-3-Clause</span>
+              <span data-i18n="info.d.maplibre">Globe and map rendering · BSD-3-Clause</span>
             </li>
             <li>
               <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a>
-              <span>Vektorkacheln, gratis und ohne Schlüssel · gestiftet von Zsolt Ero</span>
+              <span data-i18n="info.d.openfreemap">Vector tiles, free and without a key · donated by Zsolt Ero</span>
             </li>
             <li>
               <a href="https://openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a>
-              <span>Kachelschema und Basisstil · BSD-3-Clause</span>
+              <span data-i18n="info.d.openmaptiles">Tile schema and base style · BSD-3-Clause</span>
             </li>
           </ul>
 
-          <h4>Werkzeuge</h4>
+          <h4 data-i18n="info.h.tools">Tools</h4>
           <ul class="info__liste">
             <li>
               <a href="https://www.postgresql.org/" target="_blank" rel="noopener">PostgreSQL</a> ·
               <a href="https://postgis.net/" target="_blank" rel="noopener">PostGIS</a>
-              <span>Datenhaltung und Geo-Abfragen · PostgreSQL-Lizenz, GPL-2.0-or-later</span>
+              <span data-i18n="info.d.postgres">Storage and geo queries · PostgreSQL licence, GPL-2.0-or-later</span>
             </li>
             <li>
               <a href="https://supabase.com/" target="_blank" rel="noopener">Supabase</a>
-              <span>Datenbank, API und Zeitsteuerung · Apache-2.0</span>
+              <span data-i18n="info.d.supabase">Database, API and scheduling · Apache-2.0</span>
             </li>
             <li>
               <a href="https://deno.com/" target="_blank" rel="noopener">Deno</a>
-              <span>Laufzeitumgebung des Datenabrufs · MIT</span>
+              <span data-i18n="info.d.deno">Runtime of the data fetcher · MIT</span>
             </li>
             <li>
               <a href="https://vite.dev/" target="_blank" rel="noopener">Vite</a> ·
               <a href="https://www.typescriptlang.org/" target="_blank" rel="noopener">TypeScript</a>
-              <span>Bau und Sprache des Frontends · MIT, Apache-2.0</span>
+              <span data-i18n="info.d.vite">Build and language of the frontend · MIT, Apache-2.0</span>
             </li>
           </ul>
 
-          <h4>Schrift</h4>
+          <h4 data-i18n="info.h.font">Typeface</h4>
           <ul class="info__liste">
             <li>
               <a href="https://rajputrajesh-448.gumroad.com/l/NOHEMI9" target="_blank" rel="noopener">Nohemi</a>
-              <span>
-                Gestaltet von Rajesh Rajput und als Freeware
-                herausgegeben — frei nutzbar für private wie kommerzielle
-                Projekte. Die Schriftdateien selbst dürfen nicht verändert
-                werden; alle Rechte ausser dem Nutzungsrecht bleiben beim
-                Gestalter. Sie trägt hier das ganze Erscheinungsbild, und dafür
-                gebührt ihm ein eigener Dank.
+              <span data-i18n="info.d.nohemi">
+                Designed by Rajesh Rajput and released as freeware — free to use
+                for private and commercial projects alike. The font files
+                themselves may not be modified; every right beyond use stays with
+                the designer. It carries the entire look of this site, and for
+                that he deserves his own thanks.
               </span>
             </li>
           </ul>
         </section>
 
         <section class="info__block">
-          <h3>Lizenz</h3>
-          <p>
-            Der Quellcode steht unter der <strong>MIT-Lizenz</strong>,
-            Copyright © 2026 Boris Périsset. Weiterverwenden, ändern und
-            weitergeben ist erlaubt, solange der Urhebervermerk erhalten bleibt.
+          <h3 data-i18n="info.license.h">Licence</h3>
+          <p data-i18n-html="info.license.p1">
+            The source code is under the <strong>MIT licence</strong>,
+            copyright © 2026 Boris Périsset. Reuse, modification and
+            redistribution are permitted as long as the copyright notice is kept.
+          </p>
+          <p data-i18n="info.license.p2">
+            Excluded are the typeface and the third-party data named above — they
+            keep their own terms. Nohemi is freeware and may be taken along, but
+            not altered. Linked news content remains the property of the
+            respective outlet.
           </p>
           <p>
-            Ausgenommen sind die Schrift und die oben genannten Fremddaten —
-            sie behalten ihre eigenen Bedingungen. Nohemi ist Freeware und darf
-            mitgenommen werden, aber nicht verändert. Verlinkte
-            Nachrichteninhalte bleiben Eigentum des jeweiligen Mediums.
-          </p>
-          <p>
-            <a class="info__repo" href="https://github.com/boris-perisset/liveglobe" target="_blank" rel="noopener">
-              Quellcode und vollständige Lizenz auf GitHub
+            <a class="info__repo" href="https://github.com/boris-perisset/liveglobe"
+               target="_blank" rel="noopener" data-i18n="info.license.repo">
+              Source code and full licence on GitHub
             </a>
           </p>
         </section>
 
-        <p class="info__fuss">
-          Keine Cookies, kein Tracking, keine Nutzerkonten.
+        <p class="info__fuss" data-i18n="info.foot">
+          No cookies, no tracking, no user accounts.
         </p>
       </div>
     </dialog>

@@ -1,7 +1,9 @@
 import "./styles.css";
+import { t, tn, uebersetzeMarkup } from "./i18n";
 import categoryMap from "../../data/category-map.json";
 import type { CategoryDef, CategoryId, Cluster, Filters } from "./types";
 import {
+  fetchArticle,
   fetchArticlesAt,
   fetchArticlesOfEvent,
   fetchClusters,
@@ -36,6 +38,10 @@ const settings = loadSettings();
 const QUELLEN_GESAMT = CONNECTORS.filter((c) => c.status === "active").length;
 const TRAEGER_GESAMT = OWNERSHIP.length;
 
+// Die Beschriftungen im Markup stehen auf Englisch; hier werden sie auf die
+// eingestellte Sprache gebracht, bevor irgendetwas gezeichnet wird.
+uebersetzeMarkup();
+
 const filters: Filters = {
   categories: readCategoriesFromUrl(),
   connectors: settings.connectors,
@@ -58,6 +64,21 @@ const filters: Filters = {
 let starterWahlOffen = filters.categories.size === 0;
 
 const panel = new TeaserPanel(els.panel, CATEGORIES, () => globe.setAuswahl(null));
+
+/**
+ * Die Karte kennt nur einen Gegenstand: das Ereignis.
+ *
+ * Es gab einmal einen zweiten Zustand — „dieser Ort ist aufgeklappt" —, in dem
+ * die Karte statt der Umgebung nur noch die Ereignisse eines Ortes zeigte. Das
+ * war ein Modus, und Modi muss man erklären: Beim Schliessen des Panels kam die
+ * Umgebung nicht zurück, und man sah nur noch, was man selbst angeklickt hatte.
+ *
+ * Jetzt macht die Datenbank die Unterscheidung von sich aus: Solange eine
+ * Rasterzelle mehrere Orte umfasst, ist sie eine Bubble; sobald nur noch einer
+ * darin liegt, zerfällt sie in ihre Ereignisse. Zoomen ist dadurch wieder das
+ * Einzige, was die Auflösung ändert — und im Frontend bleibt kein Zustand übrig,
+ * der aus dem Tritt geraten könnte.
+ */
 
 const globe = new NewsMap({
   container: els.globe,
@@ -119,7 +140,7 @@ function scheduleReload(delay = 350) {
 
 async function load() {
   const ticket = ++inFlight;
-  setStatus("Lade Meldungen …");
+  setStatus(t("status.loading"));
   try {
     const clusters = await fetchClusters(
       filters, globe.zoom, QUELLEN_GESAMT, TRAEGER_GESAMT, globe.bounds,
@@ -142,41 +163,67 @@ async function load() {
 
     globe.setClusters(sichtbar);
     const total = sichtbar.reduce((s, c) => s + c.n, 0);
-    const quelle = hasSupabase ? "" : " · Demodaten";
+    const quelle = hasSupabase ? "" : ` · ${t("status.demo")}`;
     if (filters.connectors.size === 0) {
-      setStatus("Alle Quellen abgewählt — nichts anzuzeigen.");
+      setStatus(t("status.noSources"));
       return;
     }
+    // Gezählt werden Meldungen und Ereignisse — nicht Punkte. Eine Bubble kann
+    // mehrere Ereignisse enthalten; „an 40 Punkten" wäre eine Aussage über die
+    // Darstellung, nicht über die Welt.
+    const ereignisse = sichtbar.reduce((s, c) => s + (c.ereignisse ?? 1), 0);
     setStatus(
       sichtbar.length === 0
-        ? `Keine Meldungen in diesem Zeitfenster.${quelle}`
-        : `${total} Meldungen an ${sichtbar.length} Orten${quelle}`,
+        ? `${t("status.empty")}${quelle}`
+        : t("status.summary", {
+          reports: tn("count.report", "count.reports", total),
+          events: tn("count.event", "count.events", ereignisse),
+        }) + quelle,
     );
   } catch (e) {
     if (ticket !== inFlight) return;
-    setStatus(e instanceof Error ? e.message : "Daten konnten nicht geladen werden.", true);
+    setStatus(e instanceof Error ? e.message : t("status.error"), true);
   }
 }
 
+/**
+ * Ein Klick, zwei Bedeutungen — mehr braucht es nicht.
+ *
+ *   mehrere Ereignisse → näher heran. Die Gruppe zerfällt beim Hineinzoomen von
+ *                        selbst; ein Panel mit fünf Ereignissen wäre eine Liste,
+ *                        und Listen kann die Karte nicht besser als eine Liste.
+ *   ein Ereignis       → Panel mit dessen Meldungen.
+ *
+ * Kein Moduswechsel dazwischen. Was ein Klick tut, steht in der Bubble selbst.
+ */
 async function openCluster(c: Cluster) {
+  if ((c.ereignisse ?? 1) > 1) {
+    globe.naeherAn(c.lat, c.lon);
+    return;
+  }
+
   panel.open(c.location_name);
   // Radius passend zur Zoomstufe VOR dem Heranfliegen bestimmen: Der Pin steht
   // im Schwerpunkt seiner Rasterzelle, die Meldungen liegen verstreut darin.
   const radius = radiusForZoom(globe.zoom);
-  globe.flyTo(c.lat, c.lon, 0.9);
+  // Zentrieren, nicht heranzoomen: Beim Ereignis ist das Panel das Ziel. Ein
+  // Zoomsprung würde die Umgebung neu gruppieren, während man liest.
+  globe.zentrieren(c.lat, c.lon);
   try {
-    // Gilt der Klick einem Ereignis, wird genau dessen Berichterstattung
-    // geladen — nicht alles im Umkreis. Sonst stünden die Nachbarereignisse
-    // wieder mit im Panel, und die Trennung wäre nur auf der Karte sichtbar.
+    // Genau die Berichterstattung dieses Ereignisses — nicht alles im Umkreis.
+    // Der letzte Zweig gilt einem alten Snapshot ohne Ereignisangaben: lieber
+    // die Nachbarschaft im Panel als ein Klick, der nichts tut.
     const articles = c.event_id
       ? await fetchArticlesOfEvent(c.event_id)
+      : c.article_id
+      ? await fetchArticle(c.article_id)
       : await fetchArticlesAt(c.lat, c.lon, filters, radius);
-    panel.render(articles, settings.language);
+    // Zielsprache ist die Oberflächensprache – aber nur, wenn Übersetzen
+    // überhaupt eingeschaltet ist.
+    panel.render(articles, settings.translateHeadlines ? settings.uiLang : "off");
   } catch (e) {
     panel.showError(
-      e instanceof Error
-        ? `Details nicht ladbar: ${e.message}`
-        : "Details konnten nicht geladen werden.",
+      e instanceof Error ? `${t("panel.error")}: ${e.message}` : t("panel.error"),
     );
   }
 }
@@ -189,9 +236,9 @@ function setStatus(text: string, isError = false) {
 /**
  * Zieht eine Rubrik, die heute tatsächlich etwas zu zeigen hat.
  *
- * Gezählt werden Orte, nicht Meldungen: Eine Rubrik mit acht Pins über die Welt
- * verteilt ergibt eine lebendigere Startansicht als eine mit fünfzig Meldungen
- * an einem einzigen Ort. Rubriken unterhalb der Mindestzahl bleiben aussen vor —
+ * Gezählt werden Punkte, nicht Meldungen: Eine Rubrik mit acht Pins über die
+ * Welt verteilt ergibt eine lebendigere Startansicht als eine mit fünfzig
+ * Meldungen an einem Ort. Rubriken unterhalb der Mindestzahl bleiben aussen vor —
  * ein leerer Globus als erster Eindruck wäre das schlechteste Ergebnis.
  */
 function zufallsRubrik(clusters: Cluster[]): CategoryId | null {

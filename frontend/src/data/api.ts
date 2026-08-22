@@ -99,26 +99,17 @@ async function loadSnapshot(demo = false): Promise<Snapshot> {
  *   3. mitgelieferte Demodaten                  – nur ohne beides, fürs Entwickeln
  */
 /**
- * Ab dieser Zoomstufe zeigt die Karte einzelne Ereignisse statt Rasterzellen.
+ * Die Karte zeigt auf **jeder** Zoomstufe Ereignisse.
  *
- * Die Stufe ist gerechnet, nicht gewählt. `articles_clustered` bestimmt die
- * Rasterweite als `greatest(0.05, 20 / 2^zoom)` — bei `20/2^z = 0.05` ist
- * `z = log2(400) ≈ 8.64`. **Ab dort schrumpft die Zelle nicht mehr.** Wer
- * weiter hineinzoomt, bekommt dieselbe Gruppierung wie zuvor; das Entclustern
- * ist am Ende angelangt.
+ * Vorher gab es zwei Gegenstände: Ortscluster beim Zoomen und Ereigniscluster
+ * nach einem Klick. Damit wechselte die Karte den Modus, und beim Schliessen
+ * des Panels kam die Umgebung nicht von selbst zurück.
  *
- * Genau dort — und keinen Schritt früher — übernehmen die Ereignisse. Darüber
- * bleibt alles bei der bewährten Rastergruppierung: dieselbe Bedienung, dieselbe
- * Stabilität beim Schwenken, und der vorgefertigte Snapshot trägt weiter die
- * Startansicht.
- *
- * Ein früherer Wechsel (der Versuch mit 5) machte die Handhabung schlechter:
- * Jedes Schwenken holte neue Ereignisse aus dem sichtbaren Ausschnitt, die
- * Punkte sprangen, und statt weniger aussagekräftiger Zellen lag ein Teppich
- * aus Einzelmeldungen auf der Karte.
+ * `event_bubbles` verdichtet Ereignisse zuerst je Ort und rastert dann — die
+ * räumliche Hierarchie trägt also weiter, obwohl nur noch Ereignisse gezählt
+ * werden. Was sich beim Zoomen ändert, ist die Zellgrösse, nicht die Bedeutung
+ * eines Punktes.
  */
-const EREIGNIS_ZOOM = 9;
-
 export interface Bounds {
   west: number;
   south: number;
@@ -137,36 +128,40 @@ export async function fetchClusters(
 
   if (f.connectors.size === 0) return [];
 
-  // Nah dran: ein Punkt je Ereignis. Zwei Ereignisse am selben Ort bleiben zwei
-  // Zeilen — das Auffächern besorgt die Karte.
-  if (hasSupabase && bounds && Math.round(zoom) >= EREIGNIS_ZOOM) {
+  if (hasSupabase && bounds) {
     try {
-      const rows = await supabaseRpc<EreignisZeile[]>("events_in_bounds", {
+      const rows = await supabaseRpc<BubbleZeile[]>("event_bubbles", {
         p_from: from.toISOString(),
         p_to: f.until.toISOString(),
         p_categories: f.categories.size ? [...f.categories] : null,
+        p_zoom: Math.round(zoom),
         p_west: bounds.west,
         p_south: bounds.south,
         p_east: bounds.east,
         p_north: bounds.north,
-        p_limit: 1200,
+        p_ownership: f.ownership.size >= alleTraeger ? null : [...f.ownership],
+        p_connectors: f.connectors.size >= alleQuellen ? null : [...f.connectors],
+        p_limit: 1500,
       });
-      return rows.map((e) => ({
-        event_id: e.id,
-        lat: e.lat,
-        lon: e.lon,
-        n: e.n,
-        outlets: e.outlets,
-        country: e.country,
-        location_name: e.location_name || "Unbekannter Ort",
-        top_id: e.id,
-        top_title: e.title,
-        top_category: e.category,
+      return rows.map((o) => ({
+        event_id: o.event_id ?? undefined,
+        article_id: o.article_id ?? undefined,
+        lat: o.lat,
+        lon: o.lon,
+        n: o.n,
+        orte: o.orte,
+        ereignisse: o.ereignisse,
+        outlets: o.outlets ?? undefined,
+        country: o.country,
+        location_name: o.location_name,
+        top_id: o.top_id,
+        top_title: o.top_title,
+        top_category: o.top_category,
       }));
     } catch (err) {
-      // Fehlt die Funktion (Migration 0012 noch nicht eingespielt), geht es
-      // unten mit der Artikelgruppierung weiter. Lieber gröber als leer.
-      console.warn("events_in_bounds nicht verfügbar:", err);
+      // Fehlt die Funktion (Migration 0017 noch nicht eingespielt), greift
+      // unten der Snapshot oder die alte Gruppierung. Lieber gröber als leer.
+      console.warn("event_bubbles nicht verfügbar:", err);
     }
   }
 
@@ -196,21 +191,37 @@ export async function fetchClusters(
   });
 }
 
-interface EreignisZeile {
-  id: number;
+interface BubbleZeile {
+  event_id: number | null;
+  article_id: number | null;
   lat: number;
   lon: number;
   n: number;
-  outlets: number;
+  orte: number;
+  ereignisse: number;
+  outlets: number | null;
   country: string | null;
   location_name: string;
-  title: string;
-  category: Cluster["top_category"];
+  top_id: number;
+  top_title: string;
+  top_category: Cluster["top_category"];
 }
 
 /** Alle Meldungen genau eines Ereignisses — für den Klick auf eine Ereignis-Bubble. */
 export async function fetchArticlesOfEvent(eventId: number): Promise<Article[]> {
   return supabaseRpc<Article[]>("articles_of_event", { p_event_id: eventId });
+}
+
+/**
+ * Eine einzelne Meldung ohne Ereigniszuordnung.
+ *
+ * Nicht jede Meldung findet ein Ereignis — die Zuordnung braucht einen
+ * Textbeleg. Auf der Karte ist sie trotzdem ein Punkt, sonst verschwände sie
+ * lautlos. Beim Klick kommt sie allein ins Panel, statt ihre Nachbarschaft
+ * mitzubringen.
+ */
+export async function fetchArticle(id: number): Promise<Article[]> {
+  return supabaseRpc<Article[]>("article_by_id", { p_id: id });
 }
 
 /** Der Snapshot enthält alle Rubriken; die Rubrikauswahl filtern wir im Browser. */

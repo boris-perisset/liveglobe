@@ -46,16 +46,20 @@ if (!is_dir($outDir) && !mkdir($outDir, 0755, true) && !is_dir($outDir)) {
 $now  = new DateTimeImmutable('now', new DateTimeZone('UTC'));
 $from = $now->sub(new DateInterval('PT24H'));
 
+// Ereignis-Bubbles, wie die Karte sie auch live holt.
+//
+// Zwischenzeitlich standen hier `events_clustered` (Bubbles auf Mittelwerten
+// zwischen echten Orten — falsch) und `places_clustered` (Orte statt
+// Ereignisse). `event_bubbles` verdichtet Ereignisse zuerst je Ort und setzt
+// die Bubble auf den staerksten echten Ort der Zelle.
 $payload = json_encode([
     'p_from'       => $from->format('Y-m-d\TH:i:s\Z'),
     'p_to'         => $now->format('Y-m-d\TH:i:s\Z'),
     'p_categories' => null,
-    'p_bias_min'   => null,
-    'p_bias_max'   => null,
-    'p_zoom'       => $config['zoom'] ?? 3,
+    'p_zoom'       => (int) ($config['zoom'] ?? 3),
 ], JSON_THROW_ON_ERROR);
 
-$ch = curl_init(rtrim($config['supabase_url'], '/') . '/rest/v1/rpc/articles_clustered');
+$ch = curl_init(rtrim($config['supabase_url'], '/') . '/rest/v1/rpc/event_bubbles');
 curl_setopt_array($ch, [
     CURLOPT_POST           => true,
     CURLOPT_POSTFIELDS     => $payload,
@@ -79,11 +83,34 @@ if ($body === false || $status !== 200) {
     exit(1); // Alten Snapshot stehen lassen – lieber leicht veraltet als leer.
 }
 
-$clusters = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
-if (!is_array($clusters)) {
+$roh = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+if (!is_array($roh)) {
     fwrite(STDERR, "Unerwartete Antwort von Supabase.\n");
     exit(1);
 }
+
+// In die Form bringen, die das Frontend erwartet. Die Umbenennung hier statt
+// im Browser: Der Snapshot ist eine Datei, die jeder Besuch laedt — sie soll
+// direkt verwendbar sein und kein Umrechnen erzwingen.
+$clusters = array_map(static function (array $e): array {
+    return [
+        // Nur setzen, was auch belegt ist: `null` wuerde im Browser als
+        // gesetzter Wert durchgehen und einen Klick ins Leere laufen lassen.
+        'event_id'      => $e['event_id'] ?? null,
+        'article_id'    => $e['article_id'] ?? null,
+        'lat'           => $e['lat'],
+        'lon'           => $e['lon'],
+        'n'             => $e['n'],
+        'orte'          => $e['orte'],
+        'ereignisse'    => $e['ereignisse'],
+        'outlets'       => $e['outlets'] ?? null,
+        'country'       => $e['country'],
+        'location_name' => $e['location_name'],
+        'top_id'        => $e['top_id'],
+        'top_title'     => $e['top_title'],
+        'top_category'  => $e['top_category'],
+    ];
+}, $roh);
 
 // `zoom` gehoert mit in die Datei: Das Frontend muss wissen, mit welcher
 // Rasterweite hier gruppiert wurde, sonst kann es nicht entscheiden, ab wann

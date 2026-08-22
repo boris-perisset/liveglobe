@@ -1,24 +1,7 @@
 import type { Article, CategoryDef, CategoryId, EventGroup, TargetLang } from "../types";
 import { translate } from "../data/translate";
+import { locale, t, tn, type TextKey } from "../i18n";
 import { gruppiereNachEreignis } from "../data/api";
-
-const BIAS_LABEL: Record<string, string> = {
-  "-3": "weit links",
-  "-2": "links",
-  "-1": "eher links",
-  "0": "Mitte",
-  "1": "eher rechts",
-  "2": "rechts",
-  "3": "weit rechts",
-};
-
-const OWNERSHIP_LABEL: Record<string, string> = {
-  state: "staatlich kontrolliert",
-  public: "öffentlich-rechtlich",
-  private: "privatwirtschaftlich",
-  nonprofit: "gemeinnützig",
-  unknown: "Trägerschaft unbekannt",
-};
 
 export class TeaserPanel {
   private el: HTMLElement;
@@ -60,7 +43,7 @@ export class TeaserPanel {
     this.ort = ort;
     this.titleEl.textContent = ort;
     this.subEl.textContent = "";
-    this.listEl.innerHTML = `<p class="panel__hint">Lade Meldungen …</p>`;
+    this.listEl.innerHTML = `<p class="panel__hint">${escapeHtml(t("panel.loading"))}</p>`;
     this.el.classList.add("is-open");
     this.el.removeAttribute("inert");
   }
@@ -83,7 +66,7 @@ export class TeaserPanel {
     if (articles.length === 0) {
       this.titleEl.textContent = this.ort;
       this.subEl.textContent = "";
-      this.listEl.innerHTML = `<p class="panel__hint">Keine Meldungen in diesem Zeitfenster.</p>`;
+      this.listEl.innerHTML = `<p class="panel__hint">${escapeHtml(t("panel.empty"))}</p>`;
       return;
     }
 
@@ -150,7 +133,7 @@ export class TeaserPanel {
     }
 
     if (gruppen.length > 1) {
-      this.titleEl.textContent = `${gruppen.length} Ereignisse`;
+      this.titleEl.textContent = t("events.count", { n: gruppen.length });
       this.subEl.textContent = `${orteText(articles)} · ${meldungenText(anzahl)}`;
       return;
     }
@@ -170,7 +153,7 @@ export class TeaserPanel {
     ].filter(Boolean).join(" · ");
 
     el.innerHTML = `<h3 class="gruppe__titel"></h3><p class="gruppe__meta"></p>`;
-    el.querySelector(".gruppe__titel")!.textContent = g.title ?? "Ohne Ereigniszuordnung";
+    el.querySelector(".gruppe__titel")!.textContent = g.title ?? t("panel.noEvent");
     el.querySelector(".gruppe__meta")!.textContent = angaben;
     return el;
   }
@@ -194,7 +177,7 @@ export class TeaserPanel {
           el.classList.add("is-translated");
           const marke = document.createElement("span");
           marke.className = "card__translated";
-          marke.textContent = "übersetzt";
+          marke.textContent = t("panel.translated");
           titelEl.after(marke);
         }
       }
@@ -217,18 +200,18 @@ export class TeaserPanel {
               onerror="this.remove()">`
       : "";
 
-    const sourceName = a.source_name || a.source_domain || "Unbekannte Quelle";
+    const sourceName = a.source_name || a.source_domain || t("panel.unknownSource");
 
     // Nur nennen, was wir wirklich wissen. Zwei Platzhalter nebeneinander
     // („nicht eingestuft · Trägerschaft unbekannt") sagen nichts und stören.
     const angaben: string[] = [];
     if (a.source_bias !== null && a.source_bias !== undefined) {
-      angaben.push(BIAS_LABEL[String(a.source_bias)] ?? "unbekannt");
+      angaben.push(t(`bias.${a.source_bias}` as TextKey));
     }
     if (a.source_ownership && a.source_ownership !== "unknown") {
-      angaben.push(OWNERSHIP_LABEL[a.source_ownership]);
+      angaben.push(t(`ownership.${a.source_ownership}` as TextKey));
     }
-    if (angaben.length === 0) angaben.push("nicht eingestuft");
+    if (angaben.length === 0) angaben.push(t("panel.unrated"));
 
     el.innerHTML = `
       ${img}
@@ -245,7 +228,7 @@ export class TeaserPanel {
       formatTime(a.published_at)
     }</time> · ${escapeHtml(a.location_name)}</p>
         <a class="card__link" href="${escapeAttr(a.url)}" target="_blank" rel="noopener noreferrer">
-          Zum Artikel →
+          ${escapeHtml(t("panel.toArticle"))}
         </a>
       </div>`;
 
@@ -274,16 +257,18 @@ function orteText(articles: Article[]): string {
   }
   if (zaehler.size === 0) return "";
   const sortiert = [...zaehler].sort((x, y) => y[1] - x[1]);
-  return zaehler.size === 1 ? sortiert[0][0] : `${sortiert[0][0]} u. a.`;
+  return zaehler.size === 1
+    ? sortiert[0][0]
+    : t("events.placeAndOthers", { place: sortiert[0][0] });
 }
 
 function medienText(n: number): string {
   if (!n) return "";
-  return n === 1 ? "1 Medium" : `${n} Medien`;
+  return tn("count.outlet", "count.outlets", n);
 }
 
 function meldungenText(n: number): string {
-  return n === 1 ? "1 Meldung" : `${n} Meldungen`;
+  return tn("count.report", "count.reports", n);
 }
 
 /**
@@ -297,17 +282,17 @@ function zeitraum(von: string | null, bis: string | null): string {
   const start = new Date(von).getTime();
   const ende = bis ? new Date(bis).getTime() : start;
   const min = Math.round((ende - start) / 60000);
-  if (min < 45) return "innert einer Stunde";
-  if (min < 60 * 24) return `über ${Math.round(min / 60)} Std.`;
-  return `über ${Math.round(min / (60 * 24))} Tage`;
+  if (min < 45) return t("span.withinHour");
+  if (min < 60 * 24) return t("span.over", { text: t("time.hours", { n: Math.round(min / 60) }) });
+  return t("span.over", { text: t("time.days", { n: Math.round(min / (60 * 24)) }) });
 }
 
 function formatTime(iso: string): string {
   const d = new Date(iso);
   const mins = Math.round((Date.now() - d.getTime()) / 60000);
-  if (mins < 60) return `vor ${Math.max(1, mins)} Min.`;
-  if (mins < 60 * 24) return `vor ${Math.round(mins / 60)} Std.`;
-  return d.toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit" });
+  if (mins < 60) return t("time.minAgo", { n: Math.max(1, mins) });
+  if (mins < 60 * 24) return t("time.hoursAgo", { n: Math.round(mins / 60) });
+  return d.toLocaleDateString(locale(), { day: "2-digit", month: "2-digit" });
 }
 
 function escapeHtml(s: string): string {

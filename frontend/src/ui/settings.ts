@@ -1,6 +1,7 @@
 import connectorFile from "../../../data/connectors.json";
-import type { OwnershipDef, OwnershipId, Settings, SourceDef, TargetLang } from "../types";
+import type { OwnershipDef, OwnershipId, Settings, SourceDef, UiLang } from "../types";
 import { translationAvailable } from "../data/translate";
+import { lang, setLang, t, type TextKey } from "../i18n";
 
 const DATEN = connectorFile as {
   connectors: SourceDef[];
@@ -20,7 +21,11 @@ export function defaultSettings(): Settings {
     // Voreinstellung bewusst „alle": Der weitaus grösste Teil der Quellen ist
     // noch nicht eingestuft, ein enger Standardfilter würde den Globus leeren.
     ownership: new Set(OWNERSHIP.map((o) => o.id)),
-    language: "off",
+    // Die Sprache hat `i18n` bereits aus dem Browser bestimmt.
+    uiLang: lang(),
+    // Übersetzen ist ausgeschaltet, bis jemand es will: Die Originalschlagzeile
+    // ist die belegbare Angabe, die Übertragung eine Ableitung.
+    translateHeadlines: false,
   };
 }
 
@@ -32,7 +37,10 @@ export function loadSettings(): Settings {
     const gespeichert = JSON.parse(roh) as {
       connectors?: string[];
       ownership?: OwnershipId[];
-      language?: TargetLang;
+      /** Alt: ein Wert mit drei Zuständen. Wird unten übersetzt. */
+      language?: "off" | "de" | "en";
+      uiLang?: UiLang;
+      translateHeadlines?: boolean;
     };
     return {
       connectors: new Set(
@@ -45,7 +53,15 @@ export function loadSettings(): Settings {
           OWNERSHIP.some((o) => o.id === id)
         ),
       ),
-      language: gespeichert.language ?? "off",
+      // Umzug vom alten Dreizustand: „off" hiess nicht übersetzen und sagte
+      // nichts über die Oberfläche — dann gilt die Browsersprache. „de"/„en"
+      // hiess übersetzen, und dieselbe Sprache trägt jetzt auch die Oberfläche.
+      uiLang: gespeichert.uiLang
+        ?? (gespeichert.language === "de" || gespeichert.language === "en"
+          ? gespeichert.language
+          : standard.uiLang),
+      translateHeadlines: gespeichert.translateHeadlines
+        ?? (gespeichert.language ? gespeichert.language !== "off" : false),
     };
   } catch {
     return standard;
@@ -59,7 +75,8 @@ function saveSettings(s: Settings) {
       JSON.stringify({
         connectors: [...s.connectors],
         ownership: [...s.ownership],
-        language: s.language,
+        uiLang: s.uiLang,
+        translateHeadlines: s.translateHeadlines,
       }),
     );
   } catch {
@@ -72,82 +89,89 @@ export interface SettingsPanelOptions {
   toggle: HTMLElement;
   settings: Settings;
   onChange: (s: Settings) => void;
+  /** Wird gerufen, wenn die Oberflächensprache wechselt – die Seite baut neu auf. */
+  onLangChange?: () => void;
 }
 
 export function createSettingsPanel(opts: SettingsPanelOptions) {
-  const { container, toggle, settings, onChange } = opts;
+  const { container, toggle, settings, onChange, onLangChange } = opts;
 
   container.innerHTML = `
     <header class="settings__head">
-      <h2 class="settings__title">Einstellungen</h2>
-      <button class="settings__close" type="button" aria-label="Einstellungen schliessen">×</button>
+      <h2 class="settings__title"></h2>
+      <button class="settings__close" type="button">×</button>
     </header>
     <div class="settings__body"></div>`;
+  container.querySelector(".settings__title")!.textContent = t("settings.title");
+  container.querySelector(".settings__close")!
+    .setAttribute("aria-label", t("nav.settingsClose"));
 
   const body = container.querySelector(".settings__body") as HTMLElement;
 
   // ---------------------------------------------------------------- Quellen
-  const quellen = abschnitt(
-    "Quellen",
-    "Woher die Meldungen kommen. Abgewählte Ströme verschwinden sofort vom Globus.",
-  );
+  const quellen = abschnitt(t("settings.sources"), t("settings.sourcesHint"));
   for (const c of CONNECTORS) {
     quellen.appendChild(schalterZeile(c, settings, onChange));
   }
   body.appendChild(quellen);
 
   // ---------------------------------------------------------------- Sprache
-  const sprache = abschnitt(
-    "Sprache der Schlagzeilen",
-    translationAvailable()
-      ? "Übersetzt auf deinem Gerät, ohne dass Texte an Dritte gehen."
-      : "Die Meldungen bleiben in der Originalsprache. Übersetzt wird auf dem " +
-        "Gerät selbst — das können bisher nur Chrome und Edge auf dem Computer, " +
-        "nicht die Browser auf Telefon und Tablet.",
-  );
+  //
+  // Eine Wahl für beides: Oberfläche und Zielsprache der Übersetzung. Der
+  // frühere Dreizustand („Original / Deutsch / Englisch") ging nicht mehr,
+  // sobald dieselbe Wahl die Oberfläche trägt — „Original" ist keine Sprache,
+  // in der man ein Menü beschriften kann. Ob überhaupt übersetzt wird, sagt
+  // deshalb ein eigener Schalter darunter.
+  const sprache = abschnitt(t("settings.language"), t("settings.languageHint"));
 
   const wahl = document.createElement("div");
   wahl.className = "seg";
   wahl.setAttribute("role", "radiogroup");
-  wahl.setAttribute("aria-label", "Sprache der Schlagzeilen");
+  wahl.setAttribute("aria-label", t("settings.language"));
 
-  const optionen: { id: TargetLang; label: string }[] = [
-    { id: "off", label: "Original" },
+  const sprachen: { id: UiLang; label: string }[] = [
+    { id: "en", label: "English" },
     { id: "de", label: "Deutsch" },
-    { id: "en", label: "Englisch" },
   ];
-  const knoepfe: HTMLButtonElement[] = [];
-  for (const o of optionen) {
+  for (const o of sprachen) {
     const b = document.createElement("button");
     b.type = "button";
     b.className = "seg__item";
+    // Sprachnamen stehen in ihrer eigenen Sprache – so findet sich auch
+    // jemand zurecht, der die gerade eingestellte nicht liest.
     b.textContent = o.label;
+    b.lang = o.id;
     b.setAttribute("role", "radio");
-    b.disabled = o.id !== "off" && !translationAvailable();
-    b.addEventListener("click", () => {
-      settings.language = o.id;
-      for (const k of knoepfe) {
-        const an = k === b;
-        k.classList.toggle("is-active", an);
-        k.setAttribute("aria-checked", String(an));
-      }
-      saveSettings(settings);
-      onChange(settings);
-    });
-    const an = settings.language === o.id;
+    const an = settings.uiLang === o.id;
     b.classList.toggle("is-active", an);
     b.setAttribute("aria-checked", String(an));
-    knoepfe.push(b);
+    b.addEventListener("click", () => {
+      if (settings.uiLang === o.id) return;
+      settings.uiLang = o.id;
+      setLang(o.id);
+      saveSettings(settings);
+      onLangChange?.();
+    });
     wahl.appendChild(b);
   }
   sprache.appendChild(wahl);
+
+  const uebersetzen = zeileMitSchalter(
+    t("settings.translate"),
+    translationAvailable() ? t("settings.translateHintOk") : t("settings.translateHintNo"),
+    settings.translateHeadlines && translationAvailable(),
+    !translationAvailable(),
+    (an) => {
+      settings.translateHeadlines = an;
+      saveSettings(settings);
+      onChange(settings);
+    },
+  );
+  sprache.appendChild(uebersetzen);
   body.appendChild(sprache);
 
   // ---------------------------------------------------------------- Trägerschaft
-  const traeger = abschnitt(
-    "Trägerschaft der Medien",
-    "Wer hinter einer Quelle steht. Eingestuft ist bislang nur ein kleiner Teil — «Nicht eingestuft» abzuwählen blendet deshalb sehr viel aus.",
-  );
+  const traeger = abschnitt(t("settings.ownership"), t("settings.ownershipHint"));
   for (const o of OWNERSHIP) {
     traeger.appendChild(ownershipZeile(o, settings, onChange));
   }
@@ -207,8 +231,8 @@ function schalterZeile(
   const name = document.createElement("span");
   name.className = "row__name";
   name.textContent = c.name;
-  if (c.status === "planned") name.append(marke("geplant"));
-  if (c.status === "unavailable") name.append(marke("keine Schnittstelle"));
+  if (c.status === "planned") name.append(marke(t("settings.tagPlanned")));
+  if (c.status === "unavailable") name.append(marke(t("settings.tagNoApi")));
 
   const note = document.createElement("span");
   note.className = "row__note";
@@ -264,13 +288,59 @@ function ownershipZeile(
   text.className = "row__text";
   const name = document.createElement("span");
   name.className = "row__name";
-  name.textContent = o.label;
+  // Die Beschriftung kommt aus dem Sprachbestand, nicht aus `connectors.json`:
+  // Die Datei beschreibt Struktur (Kennung, Zustand), nicht Sprache.
+  name.textContent = t(`ownership.${o.id}` as TextKey);
   const note = document.createElement("span");
   note.className = "row__note";
   note.textContent = o.note ?? "";
   text.append(name, note);
 
   zeile.append(box, text);
+  return zeile;
+}
+
+/** Eine Zeile mit Beschriftung, Erklärung und Schalter – wie bei den Quellen. */
+function zeileMitSchalter(
+  titel: string,
+  hinweis: string,
+  an: boolean,
+  gesperrt: boolean,
+  onToggle: (an: boolean) => void,
+): HTMLElement {
+  const zeile = document.createElement("div");
+  zeile.className = "row";
+
+  const text = document.createElement("div");
+  text.className = "row__text";
+  const name = document.createElement("span");
+  name.className = "row__name";
+  name.textContent = titel;
+  const note = document.createElement("span");
+  note.className = "row__note";
+  note.textContent = hinweis;
+  text.append(name, note);
+
+  const schalter = document.createElement("button");
+  schalter.type = "button";
+  schalter.className = "switch";
+  schalter.disabled = gesperrt;
+  schalter.setAttribute("role", "switch");
+  schalter.setAttribute("aria-label", titel);
+  schalter.innerHTML = '<span class="switch__knob"></span>';
+  let zustand = an && !gesperrt;
+  const setze = () => {
+    schalter.classList.toggle("is-on", zustand);
+    schalter.setAttribute("aria-checked", String(zustand));
+  };
+  schalter.addEventListener("click", () => {
+    zustand = !zustand;
+    setze();
+    onToggle(zustand);
+  });
+  setze();
+
+  zeile.append(text, schalter);
   return zeile;
 }
 

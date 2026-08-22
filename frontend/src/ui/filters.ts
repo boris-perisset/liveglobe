@@ -1,4 +1,5 @@
 import type { CategoryDef, CategoryId } from "../types";
+import { t, type TextKey } from "../i18n";
 
 export interface FilterBarOptions {
   container: HTMLElement;
@@ -12,12 +13,12 @@ export function createFilterBar(opts: FilterBarOptions) {
   const { container, categories, selected, onChange } = opts;
   container.innerHTML = "";
   container.setAttribute("role", "group");
-  container.setAttribute("aria-label", "Rubriken filtern");
+  container.setAttribute("aria-label", t("filter.aria"));
 
   const all = document.createElement("button");
   all.type = "button";
   all.className = "chip chip--all";
-  all.textContent = "Alle";
+  all.textContent = t("filter.all");
   all.addEventListener("click", () => {
     selected.clear();
     render();
@@ -33,7 +34,9 @@ export function createFilterBar(opts: FilterBarOptions) {
       b.className = "chip";
       b.dataset.id = cat.id;
       b.style.setProperty("--chip-color", cat.color);
-      b.textContent = cat.label;
+      // Rubriknamen aus dem Sprachbestand, nicht aus `category-map.json`:
+      // Die Datei beschreibt Zuordnungsregeln, nicht Beschriftungen.
+      b.textContent = t(`category.${cat.id}` as TextKey);
       b.addEventListener("click", () => {
         if (selected.has(cat.id)) selected.delete(cat.id);
         else selected.add(cat.id);

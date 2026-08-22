@@ -8,6 +8,7 @@ import {
 } from "maplibre-gl";
 import type { CategoryDef, CategoryId, Cluster } from "../types";
 import { istNotfall, ladeStil } from "./style";
+import { t, tn } from "../i18n";
 
 /**
  * Ab dieser Pin-Zahl wechseln wir von DOM-Markern auf eine GPU-Ebene.
@@ -55,15 +56,16 @@ function zwischen(zoom: number, weit: number, nah: number): number {
  * verdeckt ein einziges Grossereignis den halben Kontinent.
  */
 /**
- * Womit eine Bubble ihre Grösse bemisst.
+ * Womit eine Bubble ihre Grösse bemisst: **immer die Zahl der Meldungen.**
  *
- * Rasterzellen zählen Meldungen — das ist dort das einzig Vorhandene. Ein
- * Ereignis zählt besser die **Medien**: Ob drei Häuser oder eines darüber
- * berichten, ist die Aussage dieses Projekts; ob ein Haus drei Fassungen
- * publiziert hat, ist es nicht.
+ * Zwischendurch war es einmal die Zahl der Medien, einmal die der Ereignisse.
+ * Beides war falsch: Dieselbe Fläche bedeutete dann je nach Zoomstufe oder
+ * Ebene etwas anderes. Eine Karte darf ihre eigene Masseinheit nicht wechseln.
+ *
+ * Reichweite und Ereigniszahl stehen im Panel, wo Platz für Worte ist.
  */
 export function bubbleMenge(c: Cluster): number {
-  return c.event_id ? Math.max(c.outlets ?? 1, 1) : c.n;
+  return c.n;
 }
 
 export function bubbleGroesse(n: number, zoom: number): number {
@@ -188,9 +190,7 @@ export class NewsMap {
     );
 
     if (istNotfall()) {
-      this.opts.onHinweis?.(
-        "Basiskarte nicht erreichbar — Pins stehen, Länder fehlen.",
-      );
+      this.opts.onHinweis?.(t("status.mapFallback"));
     }
 
     // Kachel- und Stilfehler landen sonst stumm in der Konsole.
@@ -453,7 +453,7 @@ export class NewsMap {
     el.style.setProperty("--bubble-size", `${groesse}px`);
     el.setAttribute(
       "aria-label",
-      `${c.n} ${c.n === 1 ? "Meldung" : "Meldungen"} – ${c.location_name}`,
+      `${tn("count.report", "count.reports", c.n)} – ${c.location_name}`,
     );
     el.title = c.location_name;
 
@@ -506,9 +506,43 @@ export class NewsMap {
     };
   }
 
-  flyTo(lat: number, lon: number, _altitude = 0.8) {
+  /**
+   * Näher an eine Bubble heran — ein spürbarer Schritt, nicht nur ein Schwenk.
+   *
+   * Vorher stand hier `Math.max(getZoom(), 5)`. Ab Stufe 5 hiess das: dieselbe
+   * Stufe, also bloss zentrieren. Ein Klick auf ein Cluster tat dann sichtbar
+   * nichts — die Rasterweite blieb, die Gruppe blieb, und die Karte wirkte, als
+   * reagiere sie nicht.
+   *
+   * Die Rasterweite halbiert sich je Zoomstufe; zwei Stufen vierteln also die
+   * Zelle. Das genügt, damit eine Gruppe auseinanderfällt, und ist kurz genug,
+   * dass man den Weg dorthin noch mitverfolgt.
+   *
+   * Bewusst ohne `essential`: Wer im System „weniger Bewegung" eingestellt hat,
+   * bekommt von MapLibre einen Sprung statt einer Fahrt. Das ist richtig so —
+   * die Fahrt ist Beiwerk, das Ankommen ist der Zweck.
+   */
+  naeherAn(lat: number, lon: number, schritt = 2) {
+    const map = this.map;
+    if (!map) return;
     this.drehenPausieren();
-    this.map?.flyTo({ center: [lon, lat], zoom: Math.max(this.map.getZoom(), 5), duration: 900 });
+    const ziel = Math.min(map.getMaxZoom(), Math.max(map.getZoom() + schritt, 4));
+    map.flyTo({ center: [lon, lat], zoom: ziel, duration: 1000 });
+  }
+
+  /**
+   * Auf einen Punkt zentrieren, ohne die Auflösung zu verändern.
+   *
+   * Für den Klick auf ein einzelnes Ereignis: Das Panel geht auf, die Bubble
+   * soll neben dem Panel sichtbar bleiben — aber die Umgebung darf sich nicht
+   * neu gruppieren, sonst verschwindet unter der Hand, worauf man eben geklickt
+   * hat. Nur ganz weit draussen wird ein Stück herangegangen.
+   */
+  zentrieren(lat: number, lon: number) {
+    const map = this.map;
+    if (!map) return;
+    this.drehenPausieren();
+    map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 3.5), duration: 800 });
   }
 
   resize() {
