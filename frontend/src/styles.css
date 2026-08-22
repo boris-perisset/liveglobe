@@ -4,6 +4,8 @@
    die Oberfläche tritt zurück. Farbe kommt ausschliesslich von den Rubriken.
    ========================================================================== */
 
+@import "maplibre-gl/dist/maplibre-gl.css";
+
 @font-face {
   font-family: "Nohemi";
   src: url("./fonts/Nohemi-Light.woff2") format("woff2");
@@ -185,50 +187,108 @@ button, input, select { font-family: inherit; }
   outline-offset: 2px;
 }
 
-/* ------------------------------------------------------------------ Pins */
-.pin {
+
+/* ------------------------------------------------------------------ Bubbles
+   Ein Ereignis ist ein Lichtpunkt, kein Wegweiser. Deshalb Kreis statt
+   Tropfenform: Die Bubble sitzt mittig auf ihrer Koordinate und behauptet
+   damit keine Genauigkeit, die die Ortsdaten nicht hergeben.
+
+   Durchmesser und Schein kommen als Inline-Variablen aus `map.ts`, damit
+   HTML-Bubbles und GPU-Ebene derselben Grössenformel folgen. */
+.bubble {
   all: unset;
-  /* globe.gl setzt pointer-events:none auf den Marker-Container – und `all: unset`
-     lässt die Pins das erben. Ohne diese Zeile sind sie nicht klickbar. */
   pointer-events: auto;
-  position: relative;
-  display: block;
-  width: 18px;
-  height: 25px;
-  cursor: pointer;
-  transform: translate(-50%, -100%);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .55));
-  transition: transform .18s var(--ease);
-}
-.pin__head {
+  /* MapLibre setzt die Position über `transform` – das wirkt nur, wenn das
+     Element aus dem Textfluss genommen ist. Mit `position: relative` (was
+     `all: unset` hier zurückliess) stapeln sich die Bubbles im Fluss der Karte
+     und wandern quer über die Seite statt auf die Kugel. */
   position: absolute;
   top: 0;
   left: 0;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--pin-color, var(--fg-2));
-  box-shadow: inset 0 0 0 1.5px rgba(8, 9, 11, .55);
+  display: block;
+  width: var(--bubble-size, 12px);
+  height: var(--bubble-size, 12px);
+  cursor: pointer;
+  /* Kein transform hier: MapLibre schreibt die Position als Inline-Stil in genau
+     diese Eigenschaft. Die Hover-Vergrösserung läuft deshalb über das Kind. */
+}
+.bubble__kern {
   display: grid;
   place-items: center;
-  font-size: 9px;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--bubble-color, var(--fg-2));
+  /* Der Schein ersetzt den früheren Rand. Er hebt die Bubble vom Land ab, ohne
+     eine Linie zu ziehen, und trägt die Rubrikfarbe nach aussen weiter —
+     grosse Bubbles leuchten dadurch von selbst weiter als kleine. */
+  box-shadow:
+    0 0 calc(var(--bubble-size, 12px) * 0.7) calc(var(--bubble-size, 12px) * 0.12)
+      color-mix(in srgb, var(--bubble-color, #fff) 55%, transparent),
+    0 1px 3px rgba(0, 0, 0, .5);
+  font-size: calc(var(--bubble-size, 12px) * 0.42);
   font-weight: 600;
   letter-spacing: -0.03em;
   color: rgba(8, 9, 11, .88);
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease);
 }
-.pin__tail {
+/* ------------------------------------------------- Auswahl eines Ereignisses */
+/* Der Schleier liegt im Canvas-Container über der Karte, aber unter den
+   Bubbles. So verdunkelt er den Globus, ohne die Punkte mitzunehmen — die
+   werden einzeln gedimmt, damit die gewählte hell bleiben kann. */
+.globus-schleier {
   position: absolute;
-  top: 14px;
-  left: 50%;
-  width: 0;
-  height: 0;
-  transform: translateX(-50%);
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 9px solid var(--pin-color, var(--fg-2));
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: rgba(6, 7, 9, .66);
+  opacity: 0;
+  transition: opacity .32s var(--ease);
 }
-.pin:hover { transform: translate(-50%, -100%) scale(1.22); z-index: 5; }
-.pin:focus-visible .pin__head { outline: 1.5px solid #fff; outline-offset: 2px; }
+#globe.hat-auswahl .globus-schleier { opacity: 1; }
+
+.bubble { z-index: 2; }
+
+/* Die übrigen Bubbles treten zurück. Der Schein muss dabei ganz weg: Ein
+   weicher Lichtkranz über dem Schleier wirkt sonst wie ein Fehler im Bild. */
+#globe.hat-auswahl .bubble:not(.ist-gewaehlt) .bubble__kern {
+  opacity: .32;
+  box-shadow: none;
+}
+
+#globe.hat-auswahl .bubble.ist-gewaehlt { z-index: 6; }
+.bubble.ist-gewaehlt .bubble__kern {
+  transform: scale(1.2);
+  box-shadow:
+    0 0 calc(var(--bubble-size, 12px) * 1.7) calc(var(--bubble-size, 12px) * .34)
+      color-mix(in srgb, var(--bubble-color, #fff) 80%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--bubble-color, #fff) 26%, transparent),
+    0 2px 6px rgba(0, 0, 0, .55);
+}
+/* Ein langsamer Puls hält die Aufmerksamkeit am gewählten Punkt, ohne zu
+   zappeln. Bei reduzierter Bewegung bleibt der starke Schein einfach stehen. */
+@media (prefers-reduced-motion: no-preference) {
+  .bubble.ist-gewaehlt .bubble__kern { animation: bubble-puls 2.4s ease-in-out infinite; }
+}
+@keyframes bubble-puls {
+  0%, 100% { transform: scale(1.2); }
+  50%      { transform: scale(1.3); }
+}
+
+.bubble:hover { z-index: 5; }
+.bubble:hover .bubble__kern {
+  transform: scale(1.18);
+  box-shadow:
+    0 0 calc(var(--bubble-size, 12px) * 1.15) calc(var(--bubble-size, 12px) * 0.2)
+      color-mix(in srgb, var(--bubble-color, #fff) 75%, transparent),
+    0 1px 3px rgba(0, 0, 0, .5);
+}
+.bubble:focus-visible .bubble__kern { outline: 1.5px solid #fff; outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble__kern { transition: none; }
+  .bubble:hover .bubble__kern { transform: none; }
+}
 
 /* ------------------------------------------------------------------ Zeitleiste */
 .timebar {
@@ -388,6 +448,39 @@ button, input, select { font-family: inherit; }
   letter-spacing: -0.025em;
   line-height: 1.2;
 }
+/* Der Kopf trägt jetzt zwei Zeilen: den Ereignisnamen und darunter Ort,
+   Reichweite und Dauer. Die Textspalte darf schrumpfen, der Schliessknopf
+   nicht — ohne `min-width: 0` drückt ein langer Titel ihn aus dem Panel. */
+.panel__head-text { min-width: 0; }
+.panel__sub {
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--fg-3);
+}
+.panel__sub:empty { display: none; }
+
+/* Überschrift einer Ereignisgruppe – nur sichtbar, wenn an einem Ort mehrere
+   Ereignisse zusammenkommen. */
+.gruppe {
+  padding: 16px 0 9px;
+  border-top: 1px solid var(--line);
+}
+.gruppe:first-child { border-top: 0; padding-top: 4px; }
+.gruppe__titel {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+.gruppe__meta {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--fg-3);
+}
+.gruppe__meta:empty { display: none; }
+
 .panel__close {
   all: unset;
   flex: 0 0 auto;
@@ -531,18 +624,6 @@ button, input, select { font-family: inherit; }
 .bias--na  { background: transparent; box-shadow: inset 0 0 0 1px var(--fg-3); opacity: .6; }
 
 /* ------------------------------------------------------------------ Fuss */
-.credits {
-  position: absolute;
-  right: 22px;
-  bottom: 10px;
-  font-size: 10.5px;
-  font-weight: 300;
-  color: #4c515a;
-  z-index: 2;
-  letter-spacing: 0;
-}
-.credits a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
-.credits a:hover { border-color: currentColor; }
 
 /* ------------------------------------------------------------------ Mobil */
 @media (max-width: 680px) {
@@ -576,7 +657,7 @@ button, input, select { font-family: inherit; }
 
   .timebar { bottom: 14px; width: calc(100% - 24px); padding: 11px 14px 13px; }
   .timebar__date { display: none; }
-  .status, .credits { display: none; }
+  .status { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -584,4 +665,424 @@ button, input, select { font-family: inherit; }
     animation-duration: .01ms !important;
     transition-duration: .01ms !important;
   }
+}
+
+/* ------------------------------------------------------------------ Zahnrad */
+.gear {
+  all: unset;
+  /* Links oben, auf derselben Seite, auf der das Panel hereinfährt. */
+  align-self: center;
+  margin-right: 2px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--fg-3);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: color .16s var(--ease), background .16s var(--ease), border-color .16s var(--ease);
+}
+.gear:hover { color: var(--fg); background: rgba(255,255,255,.06); }
+.gear[aria-expanded="true"] { color: var(--fg); border-color: var(--line-strong); }
+.gear:focus-visible { outline: 1px solid var(--fg); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------ Einstellungen */
+.settings {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: min(370px, 100%);
+  background: var(--surface-solid);
+  border-right: 1px solid var(--line);
+  transform: translateX(-100%);
+  transition: transform .32s var(--ease);
+  display: flex;
+  flex-direction: column;
+  z-index: 5;
+}
+.settings.is-open { transform: none; }
+
+.settings__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 24px 22px 16px;
+}
+.settings__title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.022em;
+}
+.settings__close {
+  all: unset;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--fg-3);
+  font-size: 18px;
+  line-height: 1;
+}
+.settings__close:hover { color: var(--fg); background: rgba(255,255,255,.07); }
+.settings__close:focus-visible { outline: 1px solid var(--fg); outline-offset: 1px; }
+
+.settings__body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 22px 28px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.settings__body::-webkit-scrollbar { width: 8px; }
+.settings__body::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 4px;
+  border: 2px solid var(--surface-solid);
+}
+
+.settings__section { padding: 18px 0; border-top: 1px solid var(--line); }
+.settings__section:first-child { border-top: none; padding-top: 2px; }
+
+.settings__label {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+.settings__hint {
+  margin: 0 0 14px;
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 1.45;
+  color: var(--fg-3);
+}
+
+/* ------------------------------------------------------------------ Zeile */
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 0;
+}
+.row--check { cursor: pointer; align-items: center; }
+.row[data-status="unavailable"] { opacity: .5; }
+
+.row__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.row__name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.row__note {
+  font-size: 11.5px;
+  font-weight: 300;
+  line-height: 1.42;
+  color: var(--fg-3);
+}
+.row__tag {
+  font-style: normal;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* ------------------------------------------------------------------ Schalter */
+.switch {
+  all: unset;
+  flex: 0 0 auto;
+  margin-top: 2px;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  box-shadow: inset 0 0 0 1px var(--line);
+  cursor: pointer;
+  position: relative;
+  transition: background .18s var(--ease);
+}
+.switch__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--fg-3);
+  transition: transform .18s var(--ease), background .18s var(--ease);
+}
+.switch.is-on { background: rgba(111,191,142,.28); box-shadow: inset 0 0 0 1px rgba(111,191,142,.5); }
+.switch.is-on .switch__knob { transform: translateX(14px); background: #6FBF8E; }
+.switch:disabled { cursor: not-allowed; opacity: .45; }
+.switch:focus-visible { outline: 1px solid var(--fg); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------ Kästchen */
+.check {
+  appearance: none;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--line-strong);
+  background: rgba(255,255,255,.03);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background .14s var(--ease), border-color .14s var(--ease);
+}
+.check:checked {
+  background: var(--fg);
+  border-color: var(--fg);
+}
+.check:checked::after {
+  content: "";
+  width: 4px;
+  height: 8px;
+  border: solid var(--surface-solid);
+  border-width: 0 1.8px 1.8px 0;
+  transform: translateY(-1px) rotate(45deg);
+}
+.check:focus-visible { outline: 1px solid var(--fg); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------ Segment */
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px;
+  gap: 2px;
+}
+.seg__item {
+  all: unset;
+  padding: 5px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--fg-3);
+  cursor: pointer;
+  transition: color .16s var(--ease), background .16s var(--ease);
+}
+.seg__item:hover:not(:disabled) { color: var(--fg); }
+.seg__item.is-active { background: rgba(255,255,255,.09); color: var(--fg); font-weight: 500; }
+.seg__item:disabled { opacity: .4; cursor: not-allowed; }
+.seg__item:focus-visible { outline: 1px solid var(--fg); outline-offset: 1px; }
+
+/* Hinweis an übersetzten Schlagzeilen */
+.card__translated {
+  display: inline-block;
+  margin: -2px 0 6px;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+@media (max-width: 680px) {
+  .settings { width: 100%; border-right: none; }
+  .settings__head { padding: 18px 18px 12px; }
+  .settings__body { padding: 0 18px 24px; }
+}
+
+/* ------------------------------------------------------------------ MapLibre */
+.maplibregl-ctrl-group {
+  background: var(--surface) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--r-sm) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(14px);
+}
+.maplibregl-ctrl-group button + button { border-top: 1px solid var(--line) !important; }
+.maplibregl-ctrl-group button span { filter: invert(1) opacity(.6) }
+.maplibregl-ctrl-group button:hover span { filter: invert(1) opacity(.95) }
+
+.maplibregl-ctrl-attrib {
+  background: rgba(14,15,18,.8) !important;
+  border-radius: var(--r-sm) !important;
+  font-size: 10.5px !important;
+}
+.maplibregl-ctrl-attrib a { color: var(--fg-3) !important }
+/* Zoomknöpfe und Quellenangabe weichen dem geöffneten Panel aus, statt darunter
+   zu verschwinden. Auf Mobil liegt das Panel unten – dort wird nichts geschoben. */
+@media (min-width: 681px) {
+  #app:has(#panel.is-open) .maplibregl-ctrl-bottom-right {
+    transform: translateX(-400px);
+    transition: transform .28s var(--ease);
+  }
+}
+.maplibregl-ctrl-attrib-button { filter: invert(1) opacity(.5) }
+
+.maplibregl-marker { will-change: transform; transition: opacity .18s linear }
+/* MapLibre setzt diese Klasse, sobald ein Pin hinter der Kugel steht. Unsichtbar
+   allein genügt nicht – ohne diese Zeile bliebe er anklickbar. */
+.maplibregl-marker-covered { pointer-events: none }
+
+/* ------------------------------------------------------------------ Über dieses Projekt */
+.info {
+  /* Ein <dialog> ist von Haus aus schwarz umrandet und sitzt am oberen Rand.
+     Alles davon wird hier ersetzt. */
+  all: unset;
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(640px, calc(100vw - 32px));
+  max-height: min(84vh, 780px);
+  display: none;
+  background: var(--surface-solid);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  color: var(--fg);
+  font: inherit;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .6);
+  overflow: hidden;
+}
+.info[open] { display: grid; }
+.info::backdrop {
+  background: rgba(4, 5, 6, .68);
+  backdrop-filter: blur(6px);
+}
+
+/* Ein- und Ausblenden. `allow-discrete` sorgt dafür, dass die Animation auch
+   beim Wechsel von `display: none` läuft – ohne das springt der Dialog
+   einfach ins Bild. */
+@media (prefers-reduced-motion: no-preference) {
+  .info[open] { animation: info-auf .22s var(--ease); }
+  .info[open]::backdrop { animation: blende-auf .22s var(--ease); }
+  .info.geht-zu { animation: info-zu .18s var(--ease) forwards; }
+  .info.geht-zu::backdrop { animation: blende-zu .18s var(--ease) forwards; }
+}
+@keyframes info-auf   { from { opacity: 0; transform: translateY(10px) scale(.985); } }
+@keyframes info-zu    { to   { opacity: 0; transform: translateY(6px)  scale(.99);  } }
+@keyframes blende-auf { from { opacity: 0; } }
+@keyframes blende-zu  { to   { opacity: 0; } }
+
+.info__schliessen {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+.info__schliessen button { background: var(--surface); }
+
+.info__inhalt {
+  overflow-y: auto;
+  padding: 28px 30px 30px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, .14) transparent;
+  /* Der obere Rand darf beim Scrollen unter dem Schliessknopf verschwinden. */
+  mask-image: linear-gradient(to bottom, transparent 0, #000 12px);
+}
+
+.info__titel {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -.03em;
+  margin: 0 0 14px;
+}
+.info__lead {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--fg-2);
+  margin: 0 0 12px;
+  max-width: 54ch;
+}
+
+.info__block { margin-top: 26px; }
+.info__block > h3 {
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  margin: 0 0 11px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--line);
+}
+.info__block > h4 {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--fg);
+  margin: 20px 0 8px;
+}
+.info__block > h4:first-of-type { margin-top: 16px; }
+.info__block p {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--fg-2);
+  margin: 0 0 10px;
+  max-width: 54ch;
+}
+.info__dank { font-style: italic; }
+
+/* Die Herkunft der Idee ist Erzählung, keine Aufzählung – ein schmaler Akzent
+   am Rand setzt sie ab, ohne einen eigenen Kasten zu brauchen. */
+.info__block--herkunft {
+  padding-left: 15px;
+  border-left: 2px solid color-mix(in srgb, var(--akzent-info, #4F9E72) 55%, transparent);
+}
+.info__block--herkunft > h3 { border-bottom: 0; padding-bottom: 0; margin-bottom: 8px; }
+.info__block--herkunft p:last-child { margin-bottom: 0; }
+
+.info__liste { list-style: none; margin: 0; padding: 0; }
+.info__liste li {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  font-size: 13.5px;
+}
+.info__liste li:first-child { border-top: 0; }
+.info__liste span {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--fg-3);
+  margin-top: 1px;
+  max-width: 52ch;
+}
+
+.info a {
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line-strong);
+  transition: border-color .15s var(--ease);
+}
+.info a:hover { border-bottom-color: var(--fg-2); }
+.info a:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; border-radius: 3px; }
+
+/* Sichtbar als offene Stelle markiert, damit der Platzhalter nicht
+   versehentlich live geht. */
+.info__platzhalter {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 5px;
+  background: rgba(220, 168, 78, .14);
+  border: 1px dashed rgba(220, 168, 78, .45);
+  color: #DCA84E;
+  font-size: 12px;
+}
+
+.info__fuss {
+  margin-top: 26px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--fg-3);
+}
+
+@media (max-width: 560px) {
+  .info { max-height: 88vh; }
+  .info__inhalt { padding: 24px 20px 24px; }
 }

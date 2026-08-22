@@ -15,6 +15,9 @@
   RewriteRule ^(data/.+\.json)$ /$1.gz [L]
 
   # SPA-Fallback: alles, was keine Datei ist, geht an index.html.
+  # Ausser unter /assets/ – dort wäre eine fehlende Datei ein echter Fehler, und
+  # als index.html getarnt sähe man statt eines 404 nur rätselhaftes Verhalten.
+  RewriteCond %{REQUEST_URI} !^/assets/
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . /index.html [L]
@@ -25,10 +28,18 @@
   Header set Content-Type "application/json; charset=utf-8"
 </FilesMatch>
 
+# ------------------------------------------------------------------ MIME-Typen
+# MapLibre lädt seinen Web Worker als .mjs nach. Liefert Apache die Datei als
+# application/octet-stream aus, verweigert der Browser die Ausführung und die
+# Karte bleibt leer – ohne erkennbare Fehlermeldung.
+<IfModule mod_mime.c>
+  AddType text/javascript .mjs
+</IfModule>
+
 # ------------------------------------------------------------------ Kompression
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css text/plain \
-    application/javascript application/json image/svg+xml
+    application/javascript text/javascript application/json image/svg+xml
 </IfModule>
 
 # ------------------------------------------------------------------ Caching
@@ -59,7 +70,15 @@
 </IfModule>
 
 # Konfiguration und Cron-Skript nicht über den Browser erreichbar machen.
-<FilesMatch "^(snapshot\.php|snapshot\.config.*\.php)$">
+# Bewusst ohne Endung am Ende: Editoren legen Sicherungen wie
+# snapshot.config.php.save an, und die würde Apache sonst als reinen Text
+# ausliefern – mitsamt Schlüssel.
+<FilesMatch "^(snapshot\.php|snapshot\.config.*)$">
+  Require all denied
+</FilesMatch>
+
+# Dasselbe für die verbreiteten Sicherungsmuster von Editoren.
+<FilesMatch "(~|\.save(\.\d+)?|\.bak|\.orig|\.swp)$">
   Require all denied
 </FilesMatch>
 

@@ -1,0 +1,59 @@
+{
+  "_readme": [
+    "Die Quellen, aus denen Meldungen kommen können – und die, die es nicht können.",
+    "",
+    "Das Einstellungspanel liest diese Datei direkt. 'status' entscheidet über die",
+    "Darstellung:  active = Schalter bedienbar,  planned = angekündigt und aus,",
+    "unavailable = ausgegraut mit Begründung.",
+    "",
+    "'id' muss mit articles.connector übereinstimmen, sonst greift der Filter ins Leere."
+  ],
+  "connectors": [
+    {
+      "id": "gdelt-en",
+      "name": "GDELT · englischsprachig",
+      "status": "active",
+      "defaultOn": true,
+      "url": "https://www.gdeltproject.org/",
+      "note": "Rohdaten alle 15 Minuten, rund 850 Artikel je Lauf. Ortsangaben direkt aus dem Artikeltext."
+    },
+    {
+      "id": "gdelt-tr",
+      "name": "GDELT · 64 weitere Sprachen",
+      "status": "active",
+      "defaultOn": true,
+      "url": "https://www.gdeltproject.org/",
+      "note": "Maschinell übersetzter Strom, rund 3'100 Artikel je Lauf. Trägt den grössten Teil der Abdeckung ausserhalb des englischen Sprachraums."
+    },
+    {
+      "id": "rss",
+      "name": "Eigenes Presseregister",
+      "status": "planned",
+      "defaultOn": false,
+      "note": "Kuratierte Feeds pro Land, für Regionen mit dünner GDELT-Abdeckung. In Arbeit."
+    },
+    {
+      "id": "ground-news",
+      "name": "Ground News",
+      "status": "unavailable",
+      "defaultOn": false,
+      "url": "https://ground.news/",
+      "note": "Keine öffentliche Schnittstelle. Die Einstufungen sind ein kostenpflichtiges Produkt; wir bilden die Skala nach, nicht die Daten."
+    },
+    {
+      "id": "particle-news",
+      "name": "Particle News",
+      "status": "unavailable",
+      "defaultOn": false,
+      "url": "https://particle.news/",
+      "note": "Reine App ohne öffentliche Schnittstelle."
+    }
+  ],
+  "ownership": [
+    { "id": "state",     "label": "Staatlich kontrolliert", "note": "Regierung bestimmt Leitung oder Linie" },
+    { "id": "public",    "label": "Öffentlich-rechtlich",   "note": "Gebührenfinanziert, redaktionell unabhängig" },
+    { "id": "private",   "label": "Privatwirtschaftlich",   "note": "Verlag oder Konzern in Privatbesitz" },
+    { "id": "nonprofit", "label": "Gemeinnützig",           "note": "Stiftung, Genossenschaft, Spendenfinanzierung" },
+    { "id": "unknown",   "label": "Nicht eingestuft",       "note": "Noch nicht geprüft – betrifft die grosse Mehrheit" }
+  ]
+}

@@ -10,7 +10,9 @@
     "seed:sources": "node scripts/seed-sources.mjs",
     "dev": "npm --prefix frontend run dev",
     "build": "npm run sync:catmap && npm --prefix frontend run build",
-    "deploy:function": "npm run sync:catmap && supabase functions deploy ingest"
+    "deploy:function": "npm run sync:catmap && supabase functions deploy ingest",
+    "package:hostpoint": "node scripts/package-hostpoint.mjs",
+    "deploy:hostpoint": "bash scripts/deploy-hostpoint.sh"
   },
   "engines": {
     "node": ">=20"

@@ -1,0 +1,21 @@
+-- Globe News – Leserecht auf spatial_ref_sys wiederherstellen
+--
+-- Aufräumen nach einem Fehler in 0007/0008.
+--
+-- 0007 hat `anon` das Leserecht auf `spatial_ref_sys` entzogen. 0008 wollte es
+-- zurückgeben — aber die Rückgabe stand *innerhalb* des Blocks, dessen erste
+-- Anweisung (`enable row level security`) an der Eigentümerschaft scheitert.
+-- Schlägt die erste Anweisung fehl, springt der Block in die Ausnahmebehandlung
+-- und verwirft alles Nachfolgende. Das `grant` lief also nie.
+--
+-- Folge: Die Tabelle ist für `anon` derzeit nicht lesbar. Heute merkt das
+-- niemand, weil durchgängig mit `geography` in SRID 4326 gerechnet wird und
+-- keine Abfrage ein Koordinatensystem nachschlägt. Beim ersten `ST_Transform`
+-- gäbe es einen Rechtefehler an einer Stelle, an der niemand ihn sucht.
+--
+-- Deshalb steht das `grant` hier allein und ohne Block: Es hat mit den
+-- Zeilenrechten nichts zu tun und darf nicht mit ihnen zusammen scheitern.
+--
+-- Zur Erinnerung, was diese Tabelle ist: rund 8500 EPSG-Definitionen von
+-- Koordinatensystemen. Öffentliches Nachschlagewerk, keine Nutzerdaten.
+grant select on public.spatial_ref_sys to anon, authenticated;

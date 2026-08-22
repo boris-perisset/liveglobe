@@ -1,0 +1,57 @@
+MIT License
+
+Copyright (c) 2026 Boris Périsset
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---------------------------------------------------------------------------
+Ausgenommen von dieser Lizenz
+---------------------------------------------------------------------------
+
+Die MIT-Lizenz gilt für den Quellcode dieses Projekts. Sie gilt NICHT für:
+
+* Die Schriftfamilie **Nohemi** von Rajesh Rajput
+  (`Nohemi/`, `frontend/src/fonts/`).
+
+  Sie ist **Freeware**: laut ihrer Endnutzer-Lizenz (`Nohemi/License/EULA.pdf`)
+  frei verwendbar für private wie kommerzielle Projekte. Es muss also niemand
+  etwas dazukaufen, und ein Fork darf sie mitnehmen.
+
+  Die eine Auflage: **Die Schriftdateien dürfen ohne schriftliche Erlaubnis des
+  Gestalters nicht verändert werden.** Alle Rechte ausser dem Nutzungsrecht
+  bleiben bei ihm. Deshalb steht sie nicht unter der MIT-Lizenz dieses Projekts,
+  die das Verändern ausdrücklich erlauben würde.
+
+  Bezug und Urheber: https://rajputrajesh-448.gumroad.com/l/NOHEMI9
+
+* Von Dritten bezogene Daten. Diese behalten ihre eigenen Bedingungen:
+
+  | Quelle | Lizenz |
+  |---|---|
+  | The GDELT Project (Meldungen) | frei für nicht-kommerzielle Nutzung |
+  | OpenStreetMap (Kartendaten) | ODbL 1.0 |
+  | OpenMapTiles (Kachelschema, Stil) | BSD-3-Clause |
+  | Natural Earth (Ländergrenzen) | Public Domain |
+  | IPTC Media Topics (Rubriken) | CC BY 4.0 |
+  | Wikidata (Redaktionssitze) | CC0 1.0 |
+  | GeoNames (Ortsauflösung) | CC BY 4.0 |
+
+* Verlinkte Nachrichteninhalte. Titel, Anrisstexte und Bilder bleiben
+  Eigentum des jeweiligen Mediums. Dieses Projekt speichert davon nur
+  Metadaten und verlinkt stets auf das Original.

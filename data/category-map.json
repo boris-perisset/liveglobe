@@ -1,177 +1,301 @@
 {
-  "_readme": "Zuordnung GDELT-GKG-Theme -> Rubrik. 'themes' sind Präfixe (case-insensitive). 'query' ist der GDELT-Suchausdruck, mit dem diese Rubrik pro Ingest-Lauf abgefragt wird. Reihenfolge = Priorität bei Mehrfachtreffern.",
+  "_readme": [
+    "Zuordnung GDELT-GKG-Themen zu Rubriken.",
+    "",
+    "Treffer nur an Wortgrenzen (Themen sind mit Unterstrich getrennte Wortketten).",
+    "Ein Stern am Ende erlaubt Wortanfaenge: DIPLOMA* trifft DIPLOMATIC — SKILLS wird",
+    "dagegen nicht mehr als KILL gelesen.",
+    "",
+    "Punktevergabe: 'strong' 1.0, 'weak' 0.3. 'boost' korrigiert die unterschiedliche",
+    "Haeufigkeit der Rubriken: seltene, spezifische Themen (Konflikte, Katastrophen)",
+    "werden angehoben, Sammelrubriken (Politik, Natur) gedaempft. Hoechste Summe",
+    "gewinnt, bei Gleichstand die Reihenfolge hier. Unter 'minScore' -> 'other'.",
+    "",
+    "Zum Nachjustieren gedacht: aendern, `npm run deploy:function`, fertig.",
+    "Welche Themen haeufig unzugeordnet bleiben, steht in ingest_runs.unmapped_themes."
+  ],
+  "minScore": 0.9,
   "categories": [
     {
       "id": "natural_disasters",
       "label": "Naturkatastrophen",
       "color": "#E07A5F",
-      "themes": [
-        "NATURAL_DISASTER",
-        "DISASTER",
-        "EARTHQUAKE",
-        "FLOOD",
-        "WILDFIRE",
-        "VOLCANO",
-        "TSUNAMI",
-        "LANDSLIDE"
+      "strong": [
+        "NATURAL_DISASTER*",
+        "EARTHQUAKE*",
+        "TSUNAMI*",
+        "VOLCAN*",
+        "LANDSLIDE*",
+        "AVALANCHE*",
+        "WILDFIRE*",
+        "HURRICANE*",
+        "CYCLONE*",
+        "TYPHOON*",
+        "FLOOD*"
       ],
-      "query": "(theme:NATURAL_DISASTER OR theme:DISASTER_EARTHQUAKE OR theme:DISASTER_FLOOD OR theme:WILDFIRE OR theme:DISASTER_VOLCANO)"
+      "weak": [
+        "CRISISLEX_CRISISLEXREC",
+        "EVACUATION*",
+        "DISPLACE*",
+        "SHELTERS"
+      ],
+      "boost": 1.4
     },
     {
       "id": "conflicts",
       "label": "Konflikte",
       "color": "#C4514E",
-      "themes": [
+      "strong": [
         "ARMEDCONFLICT",
         "MILITARY",
-        "KILL",
-        "WOUND",
+        "TERROR*",
         "REBELLION",
-        "TERROR",
+        "INSURGEN*",
         "SIEGE",
-        "WEAPONS"
+        "BLOCKADE",
+        "UNREST*",
+        "WEAPONS",
+        "AIRSTRIKE",
+        "CYBER",
+        "ATTACK*",
+        "CHECKPOINT",
+        "WOUND*",
+        "KILL*",
+        "ABUSES",
+        "SECURITY_SERVICES",
+        "EXTREMIS*",
+        "GENOCIDE",
+        "WAR",
+        "BOMBING",
+        "SHELLING",
+        "MISSILE",
+        "DRONE",
+        "STRIKE",
+        "ASSAULT",
+        "SHOOTING",
+        "HOSTAGE",
+        "MILITIA"
       ],
-      "query": "(theme:ARMEDCONFLICT OR theme:MILITARY OR theme:TERROR OR theme:REBELLION)"
+      "weak": [
+        "FRAGILITY",
+        "VIOLENCE",
+        "BORDER",
+        "REFUGEES",
+        "ARREST",
+        "CRIME*"
+      ],
+      "boost": 1.4
     },
     {
       "id": "peace_talks",
       "label": "Friedensgespräche",
       "color": "#6FBF8E",
-      "themes": [
-        "PEACE",
-        "NEGOTIATIONS",
+      "strong": [
         "CEASEFIRE",
+        "PEACE",
+        "PEACEKEEPING",
+        "NEGOTIAT*",
         "TREATY",
+        "RECONCILIATION",
         "MEDIATION",
-        "RECONCILIATION"
+        "DISARMAMENT",
+        "ARMISTICE",
+        "TALKS"
       ],
-      "query": "(theme:PEACEKEEPING OR theme:NEGOTIATIONS OR theme:CEASEFIRE OR theme:PEACE_TALKS)"
+      "weak": [],
+      "boost": 1.3
     },
     {
       "id": "politics",
       "label": "Politik",
       "color": "#7B93DB",
-      "themes": [
-        "ELECTION",
+      "strong": [
+        "ELECTION*",
         "LEGISLATION",
+        "LEGISLATURE",
         "GOVERNMENT",
-        "PROTEST",
         "DEMOCRACY",
+        "PROTEST*",
         "CORRUPTION",
         "IMPEACHMENT",
-        "REFERENDUM"
+        "REFERENDUM",
+        "CONSTITUTIONAL",
+        "POLITICS",
+        "POLITICAL",
+        "CENSORSHIP",
+        "PARLIAMENT",
+        "MINISTER",
+        "PRESIDENT",
+        "SENATE",
+        "CABINET"
       ],
-      "query": "(theme:ELECTION OR theme:LEGISLATION OR theme:PROTEST OR theme:GENERAL_GOVERNMENT)"
+      "weak": [
+        "PUBLIC_SECTOR_MANAGEMENT",
+        "APPOINTMENT",
+        "LEGISLATION"
+      ],
+      "boost": 0.75
     },
     {
       "id": "diplomacy",
       "label": "Diplomatie",
       "color": "#5FBCD3",
-      "themes": [
-        "DIPLOMA",
-        "UNGA",
-        "SUMMIT",
+      "strong": [
+        "DIPLOMA*",
         "ALLIANCE",
         "SANCTIONS",
-        "TRADE_AGREEMENT",
-        "EMBASSY"
+        "SUMMIT",
+        "UNGA",
+        "EMBASSY",
+        "AMBASSADOR",
+        "COOPERATION",
+        "STATE_VISIT",
+        "REPATRIATION",
+        "UNITED_NATIONS"
       ],
-      "query": "(theme:DIPLOMATIC_COOPERATION OR theme:UNGA OR theme:SANCTIONS OR theme:ALLIANCE)"
+      "weak": [
+        "TRADE",
+        "IMMIGRATION",
+        "MIGRATION"
+      ],
+      "boost": 1.0
     },
     {
       "id": "accidents",
       "label": "Unfälle",
       "color": "#DCA84E",
-      "themes": [
-        "ACCIDENT",
-        "TRANSPORT_CRASH",
-        "FIRE",
+      "strong": [
+        "MANMADE_DISASTER*",
+        "ACCIDENT*",
+        "CRASH*",
         "EXPLOSION",
-        "MANMADE_DISASTER",
-        "TRAIN_CRASH",
-        "AIR_CRASH"
+        "DERAILMENT",
+        "COLLAPSE",
+        "COLLISION",
+        "DISASTER_FIRE"
       ],
-      "query": "(theme:MANMADE_DISASTER OR theme:TRANSPORT_ACCIDENT OR theme:FIRE OR theme:EXPLOSION)"
+      "weak": [
+        "SAFETY",
+        "LOGISTICS_TRANSPORT",
+        "RESCUE",
+        "FIRE",
+        "INCIDENT"
+      ],
+      "boost": 1.0
     },
     {
       "id": "sports",
       "label": "Sport",
       "color": "#9ACD5B",
-      "themes": [
-        "SPORT",
+      "strong": [
+        "SPORT*",
+        "OLYMPIC*",
+        "ATHLET*",
         "SOCCER",
-        "OLYMPIC",
-        "ATHLET",
         "FOOTBALL",
         "CRICKET",
-        "TENNIS"
+        "TENNIS",
+        "BASKETBALL",
+        "CHAMPIONSHIP*",
+        "TOURNAMENT*",
+        "MATCH",
+        "LEAGUE"
       ],
-      "query": "(theme:SOC_SPORTS OR theme:OLYMPICS OR theme:WB_SPORT)"
+      "weak": [],
+      "boost": 1.4
     },
     {
       "id": "culture",
       "label": "Kultur",
       "color": "#B18AD6",
-      "themes": [
-        "CULTURE",
+      "strong": [
         "MEDIA_MSM",
-        "FILM",
-        "MUSIC",
-        "LITERATURE",
+        "MEDIA_SOCIAL",
+        "FESTIVAL*",
         "HERITAGE",
-        "RELIGION_FESTIVAL"
+        "MUSIC*",
+        "FILM*",
+        "MOVIE*",
+        "LITERATURE",
+        "THEATER",
+        "RELIGION*",
+        "BROADCAST"
       ],
-      "query": "(theme:MEDIA_MSM OR theme:CULTURAL_HERITAGE OR theme:MOVEMENT_GENERAL)"
+      "weak": [
+        "POINTSOFINTEREST",
+        "EDUCATION"
+      ],
+      "boost": 0.9
     },
     {
       "id": "art",
       "label": "Kunst",
       "color": "#DE87B4",
-      "themes": [
-        "ART",
-        "MUSEUM",
-        "EXHIBITION",
+      "strong": [
+        "ARTS",
+        "ARTIST*",
+        "MUSEUM*",
+        "EXHIBITION*",
         "GALLERY",
-        "ARCHITECTURE_DESIGN"
+        "SCULPTURE",
+        "PAINTING",
+        "ARCHITECTURE"
       ],
-      "query": "(theme:ARTS OR theme:MUSEUM OR theme:EXHIBITION)"
+      "weak": [],
+      "boost": 1.3
     },
     {
       "id": "weather",
       "label": "Wetter",
       "color": "#9FB6C7",
-      "themes": [
-        "WEATHER",
+      "strong": [
         "HEATWAVE",
+        "HEAT_WAVE",
         "DROUGHT",
-        "STORM",
-        "HURRICANE",
-        "SNOW",
-        "COLDWAVE"
+        "STORM*",
+        "SNOW*",
+        "COLDWAVE",
+        "MONSOON",
+        "EXTREME_WEATHER",
+        "RAINFALL",
+        "WEATHER"
       ],
-      "query": "(theme:NATURAL_DISASTER_STORM OR theme:DROUGHT OR theme:HEAT_WAVE OR theme:WEATHER)"
+      "weak": [],
+      "boost": 1.2
     },
     {
       "id": "nature",
       "label": "Natur & Umwelt",
       "color": "#4F9E72",
-      "themes": [
-        "ENV_",
+      "strong": [
+        "ENV*",
         "WILDLIFE",
-        "CLIMATE",
+        "CLIMATECHANGE",
+        "CLIMATE_CHANGE",
         "BIODIVERSITY",
         "DEFORESTATION",
         "CONSERVATION",
-        "POLLUTION"
+        "POLLUTION",
+        "ENDANGERED",
+        "WORLDMAMMALS",
+        "WORLDBIRDS",
+        "WORLDFISH",
+        "MARINE",
+        "WATERWAYS",
+        "FORESTS"
       ],
-      "query": "(theme:ENV_CLIMATECHANGE OR theme:ENV_BIODIVERSITY OR theme:WILDLIFE OR theme:ENV_DEFORESTATION)"
+      "weak": [
+        "AGRICULTURE"
+      ],
+      "boost": 0.8
     },
     {
       "id": "other",
       "label": "Übriges",
       "color": "#7B808A",
-      "themes": [],
-      "query": ""
+      "strong": [],
+      "weak": [],
+      "boost": 1.0
     }
   ]
 }

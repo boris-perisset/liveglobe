@@ -5,7 +5,9 @@ node_modules/
 
 # Builds
 frontend/dist/
-frontend/public/textures/     # werden beim Build aus three-globe kopiert
+frontend/public/textures/     # werden beim Build erzeugt
+frontend/public/geo/          # dito: Beschriftung
+frontend/.geo-cache/          # Zwischenstand fuer das Zeichnen der Vektorkarte
 
 # Umgebungsvariablen und Keys – NIE committen
 .env
@@ -38,9 +40,16 @@ npm-debug.log*
 # Vollständiges Nohemi-Paket (liegt lokal im Projektordner).
 # Im Repo sind nur die vier tatsächlich genutzten woff2 unter frontend/src/fonts.
 /Nohemi/
-.DS_Store
+
+# Stichproben der Rohdaten (gross, nur zum Entwickeln)
+_sample/
+
+# Zwischenspeicher der Register-Skripte: Antworten von Media Cloud und
+# Wikidata, mehrere hundert MB. Jederzeit neu holbar, gehoert nicht ins Repo.
+.cache/
+
+# Altlasten aus frueheren Umbauten – darf komplett weg
 _to_delete/
 
-# Von scripts/configure.mjs erzeugt – enthalten Schlüssel
-.env.local
-frontend/.env.local
+# Fertiges Hostpoint-Paket, wird bei Bedarf neu gebaut
+upload/

@@ -1,4 +1,6 @@
-import type { Article, CategoryDef, CategoryId } from "../types";
+import type { Article, CategoryDef, CategoryId, EventGroup, TargetLang } from "../types";
+import { translate } from "../data/translate";
+import { gruppiereNachEreignis } from "../data/api";
 
 const BIAS_LABEL: Record<string, string> = {
   "-3": "weit links",
@@ -11,28 +13,41 @@ const BIAS_LABEL: Record<string, string> = {
 };
 
 const OWNERSHIP_LABEL: Record<string, string> = {
-  public: "öffentlich-rechtlich",
-  private: "privat",
   state: "staatlich kontrolliert",
+  public: "öffentlich-rechtlich",
+  private: "privatwirtschaftlich",
+  nonprofit: "gemeinnützig",
   unknown: "Trägerschaft unbekannt",
 };
 
 export class TeaserPanel {
   private el: HTMLElement;
   private titleEl: HTMLElement;
+  private subEl: HTMLElement;
   private listEl: HTMLElement;
   private labels: Map<CategoryId, CategoryDef>;
+  /** Ortsname des angeklickten Pins — Rückfall, solange es keine Ereignisse gibt. */
+  private ort = "";
 
-  constructor(container: HTMLElement, categories: CategoryDef[]) {
+  constructor(
+    container: HTMLElement,
+    categories: CategoryDef[],
+    /** Wird beim Schliessen gerufen — die Karte hebt dann ihre Hervorhebung auf. */
+    private onClose?: () => void,
+  ) {
     this.labels = new Map(categories.map((c) => [c.id, c]));
     container.innerHTML = `
       <header class="panel__head">
-        <h2 class="panel__title"></h2>
+        <div class="panel__head-text">
+          <h2 class="panel__title"></h2>
+          <p class="panel__sub"></p>
+        </div>
         <button class="panel__close" type="button" aria-label="Schliessen">×</button>
       </header>
       <div class="panel__list"></div>`;
     this.el = container;
     this.titleEl = container.querySelector(".panel__title")!;
+    this.subEl = container.querySelector(".panel__sub")!;
     this.listEl = container.querySelector(".panel__list")!;
     container.querySelector(".panel__close")!.addEventListener("click", () => this.close());
     document.addEventListener("keydown", (e) => {
@@ -40,16 +55,23 @@ export class TeaserPanel {
     });
   }
 
-  open(title: string) {
-    this.titleEl.textContent = title;
+  /** Öffnet mit dem Ortsnamen als vorläufiger Überschrift; `render` ersetzt sie. */
+  open(ort: string) {
+    this.ort = ort;
+    this.titleEl.textContent = ort;
+    this.subEl.textContent = "";
     this.listEl.innerHTML = `<p class="panel__hint">Lade Meldungen …</p>`;
     this.el.classList.add("is-open");
     this.el.removeAttribute("inert");
   }
 
   close() {
+    const warOffen = this.el.classList.contains("is-open");
     this.el.classList.remove("is-open");
     this.el.setAttribute("inert", "");
+    // Nur melden, wenn wirklich etwas geschlossen wurde: Die Escape-Taste
+    // feuert sonst bei jedem Tastendruck auf der Seite.
+    if (warOffen) this.onClose?.();
   }
 
   showError(message: string) {
@@ -57,13 +79,130 @@ export class TeaserPanel {
     this.listEl.querySelector("p")!.textContent = message;
   }
 
-  render(articles: Article[]) {
+  render(articles: Article[], sprache: TargetLang = "off") {
     if (articles.length === 0) {
+      this.titleEl.textContent = this.ort;
+      this.subEl.textContent = "";
       this.listEl.innerHTML = `<p class="panel__hint">Keine Meldungen in diesem Zeitfenster.</p>`;
       return;
     }
+
+    const gruppen = gruppiereNachEreignis(articles);
+    // Die tatsächliche Zahl, nicht die geladene: `gesamt` wird in der Datenbank
+    // vor der Obergrenze gezählt. Fehlt sie (Demodaten, alte Funktion), bleibt
+    // nur das Geladene — dann ist die Zahl wenigstens nicht erfunden.
+    const gesamt = articles[0]?.gesamt ?? articles.length;
+    this.kopfSetzen(gruppen, gesamt, articles);
+
     this.listEl.innerHTML = "";
-    for (const a of articles) this.listEl.appendChild(this.card(a));
+    const karten: { a: Article; el: HTMLElement }[] = [];
+
+    // Überschriften nur, wenn es etwas zu unterscheiden gibt. Bei einem einzigen
+    // Ereignis steht sein Name schon oben; ihn zu wiederholen wäre Lärm.
+    const mitKopf = gruppen.length > 1;
+    // Überschriften stehen in der Originalsprache des ersten Artikels. Ohne
+    // sie mitzuübersetzen stünde eine finnische Zeile über deutschen Karten.
+    const ueberschriften: { el: HTMLElement; text: string }[] = [];
+    if (!mitKopf && gruppen[0]?.title) {
+      ueberschriften.push({ el: this.titleEl, text: gruppen[0].title });
+    }
+
+    for (const g of gruppen) {
+      if (mitKopf) {
+        const kopf = this.gruppenKopf(g);
+        const t = kopf.querySelector<HTMLElement>(".gruppe__titel");
+        if (t && g.title) ueberschriften.push({ el: t, text: g.title });
+        this.listEl.appendChild(kopf);
+      }
+      for (const a of g.articles) {
+        const el = this.card(a);
+        this.listEl.appendChild(el);
+        karten.push({ a, el });
+      }
+    }
+
+    // Übersetzung läuft nach dem Zeichnen: Die Originalfassung steht sofort da,
+    // die Übertragung erscheint, sobald sie fertig ist. Nie umgekehrt warten.
+    if (sprache !== "off") void this.uebersetze(karten, sprache, ueberschriften);
+  }
+
+  /**
+   * Der Kopf beantwortet zwei verschiedene Fragen, je nachdem was da ist.
+   *
+   * Ein Ereignis: Sein Name ist die Überschrift, der Ort rutscht in die
+   * Nebenzeile. Das ist der eigentliche Zweck des Umbaus — der Ort ist eine
+   * Eigenschaft des Geschehens, nicht sein Name.
+   *
+   * Mehrere: Der Ort führt wieder, weil es die einzige gemeinsame Klammer ist,
+   * und jede Gruppe bekommt darunter ihre eigene Überschrift.
+   */
+  private kopfSetzen(gruppen: EventGroup[], anzahl: number, articles: Article[]) {
+    const eines = gruppen.length === 1 ? gruppen[0] : null;
+
+    if (eines?.title) {
+      this.titleEl.textContent = eines.title;
+      this.subEl.textContent = [
+        eines.locationName ?? this.ort,
+        medienText(eines.outletCount),
+        zeitraum(eines.firstPublishedAt, eines.lastPublishedAt),
+      ].filter(Boolean).join(" · ");
+      return;
+    }
+
+    if (gruppen.length > 1) {
+      this.titleEl.textContent = `${gruppen.length} Ereignisse`;
+      this.subEl.textContent = `${orteText(articles)} · ${meldungenText(anzahl)}`;
+      return;
+    }
+
+    // Kein Ereignis zugeordnet — die Darstellung von vorher.
+    this.titleEl.textContent = orteText(articles);
+    this.subEl.textContent = meldungenText(anzahl);
+  }
+
+  private gruppenKopf(g: EventGroup): HTMLElement {
+    const el = document.createElement("div");
+    el.className = "gruppe";
+    const angaben = [
+      g.locationName,
+      medienText(g.outletCount),
+      zeitraum(g.firstPublishedAt, g.lastPublishedAt),
+    ].filter(Boolean).join(" · ");
+
+    el.innerHTML = `<h3 class="gruppe__titel"></h3><p class="gruppe__meta"></p>`;
+    el.querySelector(".gruppe__titel")!.textContent = g.title ?? "Ohne Ereigniszuordnung";
+    el.querySelector(".gruppe__meta")!.textContent = angaben;
+    return el;
+  }
+
+  private async uebersetze(
+    karten: { a: Article; el: HTMLElement }[],
+    ziel: TargetLang,
+    ueberschriften: { el: HTMLElement; text: string }[] = [],
+  ) {
+    // Zuerst die Überschriften: Sie stehen oben und fallen als Erstes auf.
+    for (const { el, text } of ueberschriften) {
+      const neu = await translate(text, ziel);
+      if (neu !== text) el.textContent = neu;
+    }
+    for (const { a, el } of karten) {
+      const titelEl = el.querySelector(".card__title");
+      if (titelEl) {
+        const neu = await translate(a.title, ziel);
+        if (neu !== a.title) {
+          titelEl.textContent = neu;
+          el.classList.add("is-translated");
+          const marke = document.createElement("span");
+          marke.className = "card__translated";
+          marke.textContent = "übersetzt";
+          titelEl.after(marke);
+        }
+      }
+      if (a.teaser) {
+        const teaserEl = el.querySelector(".card__teaser");
+        if (teaserEl) teaserEl.textContent = await translate(a.teaser, ziel);
+      }
+    }
   }
 
   private card(a: Article): HTMLElement {
@@ -78,27 +217,29 @@ export class TeaserPanel {
               onerror="this.remove()">`
       : "";
 
-    const bias =
-      a.source_bias === null || a.source_bias === undefined
-        ? "nicht eingestuft"
-        : BIAS_LABEL[String(a.source_bias)] ?? "unbekannt";
-
     const sourceName = a.source_name || a.source_domain || "Unbekannte Quelle";
-    const ownership = OWNERSHIP_LABEL[a.source_ownership ?? "unknown"];
+
+    // Nur nennen, was wir wirklich wissen. Zwei Platzhalter nebeneinander
+    // („nicht eingestuft · Trägerschaft unbekannt") sagen nichts und stören.
+    const angaben: string[] = [];
+    if (a.source_bias !== null && a.source_bias !== undefined) {
+      angaben.push(BIAS_LABEL[String(a.source_bias)] ?? "unbekannt");
+    }
+    if (a.source_ownership && a.source_ownership !== "unknown") {
+      angaben.push(OWNERSHIP_LABEL[a.source_ownership]);
+    }
+    if (angaben.length === 0) angaben.push("nicht eingestuft");
 
     el.innerHTML = `
       ${img}
       <div class="card__body">
         <span class="card__cat">${escapeHtml(cat?.label ?? "Übriges")}</span>
         <h3 class="card__title"></h3>
-        <p class="card__teaser"></p>
+        ${a.teaser ? '<p class="card__teaser"></p>' : ""}
         <p class="card__meta">
           <span class="bias bias--${a.source_bias ?? "na"}" aria-hidden="true"></span>
           <span class="card__source"></span>
-          <span class="card__sep">·</span>
-          <span>${escapeHtml(bias)}</span>
-          <span class="card__sep">·</span>
-          <span>${escapeHtml(ownership)}</span>
+          ${angaben.map((t) => `<span class="card__sep">·</span><span>${escapeHtml(t)}</span>`).join("")}
         </p>
         <p class="card__time"><time datetime="${escapeAttr(a.published_at)}">${
       formatTime(a.published_at)
@@ -109,10 +250,56 @@ export class TeaserPanel {
       </div>`;
 
     el.querySelector(".card__title")!.textContent = a.title;
-    el.querySelector(".card__teaser")!.textContent = a.teaser ?? "";
+    const teaserEl = el.querySelector(".card__teaser");
+    if (teaserEl) teaserEl.textContent = a.teaser ?? "";
     el.querySelector(".card__source")!.textContent = sourceName;
     return el;
   }
+}
+
+/**
+ * Wie der Ort im Kopf genannt wird.
+ *
+ * Der Pin ist eine Rasterzelle, kein Ort — sein Name stammt vom prominentesten
+ * Artikel darin. Bei einem Klick nahe Riga standen darunter Ereignisse aus
+ * Tallinn und Vilnius, während der Kopf „Riga" behauptete. Deshalb wird hier
+ * gezählt, was wirklich da ist: der häufigste Ortsname führt, und liegt mehr
+ * als einer vor, sagt „u. a." offen, dass die Zelle mehrere Orte umfasst.
+ */
+function orteText(articles: Article[]): string {
+  const zaehler = new Map<string, number>();
+  for (const a of articles) {
+    if (!a.location_name) continue;
+    zaehler.set(a.location_name, (zaehler.get(a.location_name) ?? 0) + 1);
+  }
+  if (zaehler.size === 0) return "";
+  const sortiert = [...zaehler].sort((x, y) => y[1] - x[1]);
+  return zaehler.size === 1 ? sortiert[0][0] : `${sortiert[0][0]} u. a.`;
+}
+
+function medienText(n: number): string {
+  if (!n) return "";
+  return n === 1 ? "1 Medium" : `${n} Medien`;
+}
+
+function meldungenText(n: number): string {
+  return n === 1 ? "1 Meldung" : `${n} Meldungen`;
+}
+
+/**
+ * Wie lange das Ereignis schon läuft.
+ *
+ * Bei einem Werkzeug über Verbreitung ist die Spanne die Aussage, nicht der
+ * Zeitpunkt: „über 9 Std." sagt, dass die Meldung gewandert ist.
+ */
+function zeitraum(von: string | null, bis: string | null): string {
+  if (!von) return "";
+  const start = new Date(von).getTime();
+  const ende = bis ? new Date(bis).getTime() : start;
+  const min = Math.round((ende - start) / 60000);
+  if (min < 45) return "innert einer Stunde";
+  if (min < 60 * 24) return `über ${Math.round(min / 60)} Std.`;
+  return `über ${Math.round(min / (60 * 24))} Tage`;
 }
 
 function formatTime(iso: string): string {

@@ -17,6 +17,17 @@
 
 declare(strict_types=1);
 
+// Nur über die Kommandozeile, also über den Cron. Die .htaccess sperrt diese
+// Datei zwar auch, aber darauf ist kein Verlass: Versteckte Dateien fallen beim
+// Hochladen gern unter den Tisch, und eine Serverkonfiguration kann sich ändern.
+// Ohne diese Sperre könnte jeder Aufruf von aussen eine Supabase-Abfrage
+// auslösen – das Gegenteil dessen, wofür der Snapshot da ist.
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    header('Content-Type: text/plain; charset=utf-8');
+    exit("Dieses Skript läuft ausschliesslich über den Cron.\n");
+}
+
 $configFile = __DIR__ . '/snapshot.config.php';
 if (!is_file($configFile)) {
     fwrite(STDERR, "snapshot.config.php fehlt – aus snapshot.config.example.php erstellen.\n");
@@ -74,10 +85,14 @@ if (!is_array($clusters)) {
     exit(1);
 }
 
+// `zoom` gehoert mit in die Datei: Das Frontend muss wissen, mit welcher
+// Rasterweite hier gruppiert wurde, sonst kann es nicht entscheiden, ab wann
+// der Snapshot zu grob ist und live gerechnet werden muss.
 $snapshot = json_encode([
     'generated_at' => $now->format('c'),
     'from'         => $from->format('c'),
     'to'           => $now->format('c'),
+    'zoom'         => (int) ($config['zoom'] ?? 3),
     'clusters'     => $clusters,
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 
