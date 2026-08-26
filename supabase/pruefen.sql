@@ -28,6 +28,34 @@ where n.nspname = 'public'
 union all
 select 'Quellen im Register', count(*)::text from sources
 
+-- Daueralarm für die Domain-Normalisierung (Migration 0027).
+--
+-- Muss 0 sein. Steht hier eine Zahl, legt der Ingest wieder Zeilen an, die
+-- nicht auf die registrierbare Domain normalisiert sind — in aller Regel, weil
+-- `npm run deploy:function` fehlt. Jede solche Zeile ist ein Medium, das seinen
+-- Sitz nicht findet, und das fällt sonst nirgends auf: Es entsteht kein Fehler,
+-- nur eine leere Zeile ohne Namen, Land und Koordinate.
+union all
+select 'Domains nicht normalisiert',
+       count(*)::text || case when count(*) > 0 then '  <-- deploy:function fehlt?' else '' end
+from sources where gn_basisdomain(domain) <> domain
+
+-- Phantomeinträge: eine Domain, die selbst ein öffentliches Suffix ist
+-- (`com.py`, `gov.br`), kann kein Medienhaus sein. 0027 hat 150 davon entfernt.
+union all
+select 'Phantom-Domains', count(*)::text
+from sources
+where array_length(string_to_array(domain, '.'), 1) = 2
+  and split_part(domain, '.', 1) in
+      ('com','co','net','org','gov','edu','ac','or','ne','go','mil','int')
+  and length(split_part(domain, '.', 2)) = 2
+
+-- Verortungsgrad: Nur Outlets mit Punkt bekommen im Replay einen Bogen.
+union all
+select 'davon mit Redaktionssitz',
+       count(*) filter (where home_geom is not null)::text || ' von ' || count(*)::text
+from sources
+
 union all
 select 'Artikel', count(*)::text from articles
 

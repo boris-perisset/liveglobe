@@ -93,23 +93,109 @@ Deno.test("pickLocation bevorzugt Städte vor Ländern", () => {
 // ---------------------------------------------------------------- Rubriken
 Deno.test("categorise trifft nur an Wortgrenzen", () => {
   // Die beiden Fälle, an denen die erste Fassung gescheitert ist
-  assert(categorise(["WB_135_TRANSPORT"]).category !== "sports", "TRANSPORT ist kein SPORT");
-  assert(categorise(["WB_2670_JOBS_SKILLS"]).category !== "conflicts", "SKILLS ist kein KILL");
+  assert(categorise(["WB_135_TRANSPORT"]).category !== "sport", "TRANSPORT ist kein SPORT");
+  assert(
+    categorise(["WB_2670_JOBS_SKILLS"]).category !== "conflict_war_peace",
+    "SKILLS ist kein KILL",
+  );
 });
 
 Deno.test("categorise erkennt eindeutige Fälle", () => {
-  assertEquals(categorise(["ARMEDCONFLICT", "MILITARY", "KILL", "WOUND"]).category, "conflicts");
+  assertEquals(
+    categorise(["ARMEDCONFLICT", "MILITARY", "KILL", "WOUND"]).category,
+    "conflict_war_peace",
+  );
   assertEquals(
     categorise(["NATURAL_DISASTER_FLOOD", "NATURAL_DISASTER", "EVACUATION"]).category,
-    "natural_disasters",
+    "disaster_accident",
   );
-  assertEquals(categorise(["CEASEFIRE", "NEGOTIATIONS", "PEACE"]).category, "peace_talks");
-  assertEquals(categorise(["ENV_CLIMATECHANGE", "BIODIVERSITY", "WILDLIFE"]).category, "nature");
+  assertEquals(
+    categorise(["ENV_CLIMATECHANGE", "BIODIVERSITY", "WILDLIFE"]).category,
+    "environment",
+  );
 });
 
-Deno.test("categorise unterscheidet MANMADE_ von NATURAL_DISASTER", () => {
-  assertEquals(categorise(["MANMADE_DISASTER_IMPLIED", "DISASTER_FIRE"]).category, "accidents");
-  assertEquals(categorise(["NATURAL_DISASTER_EARTHQUAKE"]).category, "natural_disasters");
+// Der Fall, der die Umstellung ausgelöst hat: IPTC führt Konflikt, Krieg und
+// Frieden unter *einem* Oberbegriff. Ein Waffenstillstand ist kein anderes
+// Thema als der Krieg, über den verhandelt wird — er ist dessen Verlauf.
+Deno.test("Friedensgespräche landen unter Konflikt & Frieden", () => {
+  assertEquals(
+    categorise(["CEASEFIRE", "NEGOTIATIONS", "PEACE"]).category,
+    "conflict_war_peace",
+  );
+});
+
+// Vorher trennten wir Naturkatastrophe und Unfall. IPTC fasst das Ereignis und
+// trennt nicht nach Ursache. Der Test bleibt stehen, damit dokumentiert ist,
+// dass die Zusammenlegung gewollt ist und nicht versehentlich passiert.
+Deno.test("Naturkatastrophe und Unfall teilen sich einen Oberbegriff", () => {
+  assertEquals(
+    categorise(["MANMADE_DISASTER_IMPLIED", "DISASTER_FIRE"]).category,
+    "disaster_accident",
+  );
+  assertEquals(categorise(["NATURAL_DISASTER_EARTHQUAKE"]).category, "disaster_accident");
+});
+
+/*
+ * Die neu hinzugekommenen Oberbegriffe — mit **echten** GKG-Themennamen.
+ *
+ * Die erste Fassung dieser Prüfung nahm erfundene Namen (`ECON_INFLATION`,
+ * `TAX_FNCACT`, `MARKET`). Sie bestand, und trotzdem war das Vokabular kaputt:
+ * Bewiesen war nur, dass die Mustermaschine funktioniert, nicht dass die Muster
+ * auf echte GDELT-Themen passen. An 60 Zeilen aus `_sample/` gemessen landeten
+ * damals 49 in „Wirtschaft".
+ *
+ * Alle Namen unten stammen deshalb aus `_sample/` und sind dort nachweisbar.
+ * Das Rückgrat sind die numerierten Weltbank-Codes: Weil an jeder
+ * Unterstrichgrenze getroffen wird, greift `EDUCATION` auch in `WB_470_EDUCATION`.
+ */
+Deno.test("categorise erkennt die neu hinzugekommenen Oberbegriffe", () => {
+  assertEquals(
+    categorise(["EPU_ECONOMY", "ECON_INFLATION", "WB_471_ECONOMIC_GROWTH"]).category,
+    "economy_business",
+  );
+  assertEquals(categorise(["WB_840_JUSTICE", "TRIAL", "ARREST"]).category, "crime_law");
+  assertEquals(
+    categorise(["WB_621_HEALTH_NUTRITION_AND_POPULATION", "MEDICAL", "GENERAL_HEALTH"]).category,
+    "health",
+  );
+  assertEquals(
+    categorise(["EDUCATION", "WB_470_EDUCATION", "SOC_POINTSOFINTEREST_SCHOOL"]).category,
+    "education",
+  );
+  assertEquals(categorise(["WB_2670_JOBS", "UNEMPLOYMENT", "WB_856_WAGES"]).category, "labour");
+  assertEquals(categorise(["RELIGION", "TAX_RELIGION"]).category, "religion");
+  assertEquals(
+    categorise(["WB_133_INFORMATION_AND_COMMUNICATION_TECHNOLOGIES", "SCIENCE", "SOC_INNOVATION"])
+      .category,
+    "science_technology",
+  );
+  assertEquals(
+    categorise(["WB_695_POVERTY", "WB_134_SOCIAL_DEVELOPMENT", "DISCRIMINATION"]).category,
+    "society",
+  );
+});
+
+/*
+ * Der teuerste Einzelfehler dieser Umstellung, als Rückfallprüfung.
+ *
+ * `TAX_` heisst in GDELT **Taxonomie**, nicht Steuern: `TAX_FNCACT`
+ * (Funktionsträger), `TAX_ETHNICITY`, `TAX_WORLDLANGUAGES`. Mit 594 von rund
+ * 2000 Vorkommen ist es das häufigste Präfix überhaupt. Ein Muster `TAX*`
+ * machte 82 % aller Meldungen zu Wirtschaftsmeldungen.
+ */
+Deno.test("TAX_ ist Taxonomie und keine Steuermeldung", () => {
+  const nurTaxonomie = ["TAX_FNCACT_PRESIDENT", "TAX_ETHNICITY", "TAX_WORLDLANGUAGES", "TAX_FNCACT"];
+  assertEquals(categorise(nurTaxonomie).category, "other");
+});
+
+// GDELT schreibt SEIGE statt SIEGE. Ohne beide Schreibweisen fiele eine
+// Belagerung durch — gefunden erst beim Lesen der echten Themennamen.
+Deno.test("categorise kennt GDELTs Schreibweise SEIGE", () => {
+  assertEquals(
+    categorise(["ARMEDCONFLICT", "KILL", "WOUND", "SEIGE"]).category,
+    "conflict_war_peace",
+  );
 });
 
 Deno.test("categorise fällt bei dünner Lage auf 'other' zurück", () => {
@@ -170,7 +256,7 @@ Deno.test("parseRow verarbeitet eine vollständige GKG-Zeile", () => {
   assertEquals(r.location!.fullName, "Izmail, Odes'ka Oblast, Ukraine");
   assertEquals(r.tone, -5.1948);
   assertEquals(r.image, "https://example.org/bild.jpg");
-  assertEquals(categorise(r.themes).category, "conflicts");
+  assertEquals(categorise(r.themes).category, "conflict_war_peace");
 });
 
 Deno.test("parseRow verwirft Zeilen ohne Titel, URL oder Ort", () => {
@@ -285,6 +371,6 @@ Deno.test("categorise braucht mindestens einen starken Treffer", () => {
   // Mit einem starken Treffer greift die Rubrik weiterhin
   assertEquals(
     categorise([...beilaeufig, "NATURAL_DISASTER_FLOOD"]).category,
-    "natural_disasters",
+    "disaster_accident",
   );
 });

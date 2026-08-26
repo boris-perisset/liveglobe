@@ -60,11 +60,44 @@ function normaliseUrl(raw: string): string | null {
   }
 }
 
+/**
+ * Registrierbare Domain — dieselbe Regel wie in `gn_basisdomain()` (Migration
+ * 0027) und in `scripts/outlets-build.mjs`.
+ *
+ * **Zweistellige Länderendung + davor ein Verwaltungspräfix → drei Teile.**
+ * Sonst zwei.
+ *
+ *   edition.cnn.com              → cnn.com
+ *   timesofindia.indiatimes.com  → indiatimes.com
+ *   abc.com.py                   → abc.com.py
+ *   bbc.co.uk                    → bbc.co.uk
+ *
+ * Vorher behielt der Ingest hier die Subdomain, während das Register auf die
+ * registrierbare Domain reduzierte. Zwei Zeichenketten, kein Treffer — und
+ * statt einer Verbindung entstand eine leere Zeile ohne Namen, Land und
+ * Koordinate. An 40 Domains gemessen kostete das 836 Meldungen ihren Bogen.
+ *
+ * Drei Kopien derselben Regel sind eine Zumutung, aber Postgres, Deno und Node
+ * teilen keinen Code. Wer eine ändert, ändert alle drei.
+ */
+const VERWALTUNGSPRAEFIX = new Set(
+  ["com", "co", "net", "org", "gov", "edu", "ac", "or", "ne", "go", "mil", "int"],
+);
+
+function basisDomain(host: string): string {
+  const t = host.toLowerCase().replace(/\.$/, "").split(".");
+  if (t.length < 2) return t.join(".");
+  if (t.length >= 3 && t[t.length - 1].length === 2 && VERWALTUNGSPRAEFIX.has(t[t.length - 2])) {
+    return t.slice(-3).join(".");
+  }
+  return t.slice(-2).join(".");
+}
+
 function domainOf(url: string, fallback: string): string | null {
   try {
-    return new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+    return basisDomain(new URL(url).hostname);
   } catch {
-    return fallback || null;
+    return fallback ? basisDomain(fallback) : null;
   }
 }
 
