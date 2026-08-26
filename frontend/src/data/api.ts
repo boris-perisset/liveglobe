@@ -1,4 +1,4 @@
-import type { Article, Cluster, EventGroup, Filters, Snapshot } from "../types";
+import type { Arc, Article, Cluster, EventGroup, Filters, ReplayVorschlag, Snapshot } from "../types";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -319,6 +319,57 @@ export function gruppiereNachEreignis(articles: Article[]): EventGroup[] {
     }
   }
   return [...gruppen.values()];
+}
+
+/**
+ * Die Bögen eines Ereignisses, in zeitlicher Reihenfolge.
+ *
+ * Bewusst ohne Snapshot- und ohne Demopfad. Das Replay hängt an
+ * `event_outlets`, und die gibt es nur live — ein erfundener Verlauf wäre bei
+ * einem Werkzeug, dessen Kernaussage aus Zeitpunkten besteht, keine
+ * Notlösung, sondern eine Falschaussage. Ohne Supabase wird der Knopf gar
+ * nicht erst angeboten.
+ *
+ * Sortiert wird trotz `order by` in der Funktion noch einmal hier: Die
+ * gesamte Zeitrechnung des Replays hängt daran, dass der erste Bogen wirklich
+ * der erste ist.
+ */
+export async function fetchEventArcs(eventId: number): Promise<Arc[]> {
+  const rows = await supabaseRpc<Arc[]>("event_arcs", { p_event_id: eventId });
+  // **Nicht** nach Koordinaten filtern: Medien ohne bekannten Sitz gehören in
+  // die Zeitleiste und in die Zähler, nur nicht auf die Karte. Wer sie hier
+  // wegwirft, macht aus einer Lücke im Register eine Aussage über die Welt.
+  return rows.sort((a, b) => Date.parse(a.first_seen_at) - Date.parse(b.first_seen_at));
+}
+
+/**
+ * Die Ereignisse dieses Zeitfensters mit der weitesten belegbaren Verbreitung.
+ *
+ * Gezählt werden nur Medien mit Koordinate — dieselbe Menge, die `event_arcs`
+ * später zeichnet. Die Zahl in der Leiste stimmt damit mit dem überein, was zu
+ * sehen ist.
+ *
+ * Fehler werden geschluckt und als leere Liste zurückgegeben: Die Leiste ist
+ * ein Angebot, kein Bestandteil der Karte. Fehlt sie, fehlt nichts.
+ */
+export async function fetchTopReplays(
+  f: Filters,
+  anzahl = 3,
+): Promise<ReplayVorschlag[]> {
+  if (!hasSupabase) return [];
+  const from = new Date(f.until.getTime() - f.windowHours * 3600_000);
+  try {
+    return await supabaseRpc<ReplayVorschlag[]>("top_replays", {
+      p_from: from.toISOString(),
+      p_to: f.until.toISOString(),
+      p_categories: f.categories.size ? [...f.categories] : null,
+      p_min_arcs: 3,
+      p_limit: anzahl,
+    });
+  } catch (err) {
+    console.warn("top_replays nicht verfügbar:", err);
+    return [];
+  }
 }
 
 /** Nur für die Demodaten: baut plausible Meldungen aus dem Snapshot-Cluster. */

@@ -1,21 +1,25 @@
 import "./styles.css";
-import { t, tn, uebersetzeMarkup } from "./i18n";
+import { locale, t, tn, uebersetzeMarkup } from "./i18n";
 import categoryMap from "../../data/category-map.json";
-import type { CategoryDef, CategoryId, Cluster, Filters } from "./types";
+import type { Arc, CategoryDef, CategoryId, Cluster, Filters, ReplayVorschlag } from "./types";
 import {
   fetchArticle,
   fetchArticlesAt,
   fetchArticlesOfEvent,
   fetchClusters,
+  fetchEventArcs,
+  fetchTopReplays,
   hasSupabase,
   radiusForZoom,
 } from "./data/api";
 import { CONNECTORS, createSettingsPanel, loadSettings, OWNERSHIP } from "./ui/settings";
 import { NewsMap } from "./map/map";
 import { createFilterBar } from "./ui/filters";
+import { createReplayBar } from "./ui/replaybar";
 import { createInfoDialog } from "./ui/info";
 import { createTimeSlider } from "./ui/timeslider";
-import { TeaserPanel } from "./ui/panel";
+import { TeaserPanel, type ReplayAnstoss } from "./ui/panel";
+import { Replay } from "./map/replay";
 
 const CATEGORIES = (categoryMap as { categories: CategoryDef[] }).categories;
 const MAX_HOURS_BACK = 8 * 24;
@@ -63,7 +67,20 @@ const filters: Filters = {
  */
 let starterWahlOffen = filters.categories.size === 0;
 
-const panel = new TeaserPanel(els.panel, CATEGORIES, () => globe.setAuswahl(null));
+/**
+ * Der vierte Parameter ist der Replay-Knopf — und er wird nur gesetzt, wenn
+ * Supabase konfiguriert ist.
+ *
+ * Das Replay hängt an `event_outlets`, und die gibt es nur live. Ohne
+ * Verbindung erscheint der Knopf gar nicht erst, statt zu erscheinen und dann
+ * nichts zu tun: Ein Knopf, der nichts tut, ist schlechter als kein Knopf.
+ */
+const panel = new TeaserPanel(
+  els.panel,
+  CATEGORIES,
+  () => globe.setAuswahl(null),
+  hasSupabase ? starteReplay : undefined,
+);
 
 /**
  * Die Karte kennt nur einen Gegenstand: das Ereignis.
@@ -92,6 +109,41 @@ const globe = new NewsMap({
 // und eine `const` vor ihrer Auswertung anzufassen wirft.
 panel.close();
 
+/**
+ * Die Replay-Leiste hängt sich selbst unter die Rubriken.
+ *
+ * Kein Eintrag in `index.html`: Die Datei wird von Hand gepflegt, und ein
+ * Element, das nur zusammen mit seinem Modul einen Sinn ergibt, gehört zu
+ * diesem Modul. Die Kopfzeile ist eine Spalte mit Abstand — ein weiteres Kind
+ * reiht sich von selbst ein.
+ */
+const replayLeisteEl = document.createElement("div");
+replayLeisteEl.id = "replays";
+els.filters.after(replayLeisteEl);
+
+const replayBar = createReplayBar({
+  container: replayLeisteEl,
+  categories: CATEGORIES,
+  onWaehlen: (v) => void replayAusLeiste(v),
+});
+
+/**
+ * Nur nachladen, wenn sich Rubriken oder Zeitfenster geändert haben.
+ *
+ * `load()` läuft bei jedem Schwenk und jeder Zoomstufe; die Leiste hängt aber
+ * an keinem Kartenausschnitt. Ohne diese Merkzeile wäre jedes Verschieben der
+ * Karte eine zusätzliche Abfrage, die dasselbe Ergebnis liefert.
+ */
+let replaySignatur = "";
+
+async function replaysNachziehen() {
+  const signatur = [...filters.categories].sort().join(",")
+    + `|${filters.until.getTime()}|${filters.windowHours}`;
+  if (signatur === replaySignatur) return;
+  replaySignatur = signatur;
+  replayBar.setzen(await fetchTopReplays(filters, 3));
+}
+
 const filterBar = createFilterBar({
   container: els.filters,
   categories: CATEGORIES,
@@ -115,7 +167,10 @@ createSettingsPanel({
   },
 });
 
-createInfoDialog(els.info, els.infoToggle);
+const infoDialog = createInfoDialog(els.info, els.infoToggle);
+// Das Beta-Etikett im Titel öffnet denselben Dialog wie das Info-Zeichen.
+document.getElementById("beta-badge")
+  ?.addEventListener("click", () => infoDialog.open());
 
 const timeSlider = createTimeSlider({
   container: els.timebar,
@@ -162,6 +217,8 @@ async function load() {
     }
 
     globe.setClusters(sichtbar);
+    // Nicht abwarten: Die Karte soll nicht auf eine Nebensache warten.
+    void replaysNachziehen();
     const total = sichtbar.reduce((s, c) => s + c.n, 0);
     const quelle = hasSupabase ? "" : ` · ${t("status.demo")}`;
     if (filters.connectors.size === 0) {
@@ -221,6 +278,137 @@ async function openCluster(c: Cluster) {
     // Zielsprache ist die Oberflächensprache – aber nur, wenn Übersetzen
     // überhaupt eingeschaltet ist.
     panel.render(articles, settings.translateHeadlines ? settings.uiLang : "off");
+    // Erst jetzt entscheidet sich, ob es einen Replay-Knopf gibt: `outlet_count`
+    // zählt alle Medien, gezeichnet werden nur die mit Koordinate. Nachgeladen
+    // **nach** dem Zeichnen — die Meldungen stehen sofort da, der Knopf kommt
+    // dazu, sobald er belegt ist. Nie umgekehrt warten.
+    if (c.event_id) {
+      const id = c.event_id;
+      void fetchEventArcs(id)
+        .then((arcs) => panel.replayAnbieten(zeichenbar(arcs) >= 2 ? arcs : null))
+        .catch(() => panel.replayAnbieten(null));
+    }
+  } catch (e) {
+    panel.showError(
+      e instanceof Error ? `${t("panel.error")}: ${e.message}` : t("panel.error"),
+    );
+  }
+}
+
+/**
+ * Ein Replay läuft, oder keines.
+ *
+ * Zwei gleichzeitig wären zwei Kameras auf einer Karte — das vorige wird
+ * deshalb beendet, bevor das nächste anläuft.
+ */
+let replay: Replay | null = null;
+
+/**
+ * Wie viele dieser Bögen lassen sich überhaupt zeichnen?
+ *
+ * `event_arcs` liefert seit 0026 **alle** Medien eines Ereignisses, auch die
+ * ohne bekannten Sitz — sie zählen mit, werden aber nicht gemalt. Ob sich ein
+ * Replay lohnt, entscheidet die zeichenbare Zahl, nicht die Gesamtzahl.
+ */
+function zeichenbar(arcs: Arc[]): number {
+  return arcs.filter((a) => typeof a.lat === "number" && typeof a.lon === "number").length;
+}
+
+async function starteReplay(anstoss: ReplayAnstoss) {
+  const karte = globe.karte;
+  if (!karte) return;
+  replay?.beenden();
+  replay = null;
+  globe.replayModus(false);
+
+  try {
+    // Kommt der Anstoss aus dem Panel, sind die Bögen schon da — der Knopf
+    // erscheint erst, wenn sie geladen und tragfähig sind. Aus der Leiste
+    // dagegen wird jetzt geholt; dort ist nur die Zahl bekannt.
+    let arcs = anstoss.arcs;
+    if (arcs.length === 0) {
+      setStatus(t("replay.loading"));
+      arcs = await fetchEventArcs(anstoss.eventId);
+    }
+    // Letzter Riegel — gezählt werden die **zeichenbaren** Bögen. Ein Ereignis
+    // mit neun Medien, von denen sieben keinen bekannten Sitz haben, ergibt
+    // keine Verbreitung, sondern einen Strich.
+    if (zeichenbar(arcs) < 2) {
+      setStatus(t("replay.none"), true);
+      return;
+    }
+    setStatus("");
+    // Das Panel bleibt offen: Wer beim Zusehen wissen will, was da eigentlich
+    // steht, soll es nicht erst wieder aufklappen müssen.
+    replay = new Replay({
+      map: karte,
+      buehne: els.globe,
+      farbe: anstoss.farbe,
+      locale: locale(),
+      texte: {
+        aria: t("replay.aria"),
+        medien: t("replay.outlets"),
+        laender: t("replay.countries"),
+        sprachen: t("replay.languages"),
+        regionen: t("replay.regions"),
+        abspielen: t("replay.play"),
+        pause: t("replay.pause"),
+        nochmal: t("replay.again"),
+        schliessen: t("replay.close"),
+        ohneSitz: (n: number) => t("replay.noSeat", { n }),
+        weitere: (n: number) => t("panel.andMore", { n }),
+        ortsguete: (land: number, region: number) =>
+          [
+            land > 0 ? t("replay.geoLand", { n: land }) : "",
+            region > 0 ? t("replay.geoRegion", { n: region }) : "",
+          ].filter(Boolean).join(" "),
+      },
+      onEnde: () => {
+        replay = null;
+        globe.replayModus(false);
+      },
+    });
+    globe.replayModus(true);
+    replay.start(
+      {
+        id: anstoss.eventId,
+        lat: anstoss.lat,
+        lon: anstoss.lon,
+        titel: anstoss.titel,
+        ort: anstoss.ort,
+      },
+      arcs,
+    );
+  } catch (e) {
+    setStatus(e instanceof Error ? `${t("panel.error")}: ${e.message}` : t("panel.error"), true);
+  }
+}
+
+/**
+ * Ein Replay aus der Leiste.
+ *
+ * Panel und Replay gehen gemeinsam auf: Wer beim Zusehen wissen will, was da
+ * eigentlich steht, soll es nicht erst suchen müssen. Nicht zentriert wird
+ * bewusst — das Replay setzt seine Kamera selbst, und zwei Kamerafahrten
+ * übereinander sähen aus wie ein Fehler.
+ */
+async function replayAusLeiste(v: ReplayVorschlag) {
+  const ort = v.location_name ?? v.title;
+  panel.open(ort);
+  const farbe = CATEGORIES.find((c) => c.id === v.category)?.color ?? "#8a8f98";
+  void starteReplay({
+    eventId: v.event_id,
+    arcs: [],
+    lat: v.lat,
+    lon: v.lon,
+    titel: v.title,
+    ort,
+    farbe,
+  });
+  try {
+    const articles = await fetchArticlesOfEvent(v.event_id);
+    panel.render(articles, settings.translateHeadlines ? settings.uiLang : "off");
+    panel.replayAnbieten(null); // Es läuft bereits — ein zweiter Knopf wäre Lärm.
   } catch (e) {
     panel.showError(
       e instanceof Error ? `${t("panel.error")}: ${e.message}` : t("panel.error"),
@@ -260,13 +448,34 @@ function zufallsRubrik(clusters: Cluster[]): CategoryId | null {
 }
 
 // ------------------------------------------------------------------ URL-Zustand
+/**
+ * Geteilte Links von vor der IPTC-Umstellung.
+ *
+ * `?cat=peace_talks` war ein gültiger Link, den jemand jemandem geschickt hat.
+ * Ihn stillschweigend zu verwerfen hiesse: Die Seite öffnet sich mit einer
+ * zufälligen Rubrik, und niemand erfährt, dass er die falsche Welt ansieht.
+ * Ein paar Zeilen Tabelle sind billiger als ein Link, der lügt.
+ */
+const RUBRIK_UMZUG: Record<string, CategoryId> = {
+  natural_disasters: "disaster_accident",
+  accidents: "disaster_accident",
+  conflicts: "conflict_war_peace",
+  peace_talks: "conflict_war_peace",
+  diplomacy: "politics",
+  nature: "environment",
+  sports: "sport",
+  culture: "arts_culture",
+  art: "arts_culture",
+};
+
 function readCategoriesFromUrl(): Set<CategoryId> {
   const raw = new URLSearchParams(location.search).get("cat");
   const valid = new Set(CATEGORIES.map((c) => c.id));
   const set = new Set<CategoryId>();
   if (!raw) return set;
   for (const part of raw.split(",")) {
-    const id = part.trim() as CategoryId;
+    const roh = part.trim();
+    const id = (RUBRIK_UMZUG[roh] ?? roh) as CategoryId;
     if (valid.has(id)) set.add(id);
   }
   return set;

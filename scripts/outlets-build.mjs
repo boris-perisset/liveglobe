@@ -50,22 +50,41 @@ const KENNUNG = "GlobeNews/0.1 (https://liveglobe.site; Outlet-Register)";
 
 // ------------------------------------------------------------------ Werkzeug
 
-const MEHRTEILIG = new Set(
-  ("co.uk com.au co.za com.br co.jp co.in com.ng co.ke com.mx co.nz com.tr " +
-    "com.ar co.il com.sg com.pk com.ph net.au org.uk com.cn co.id com.my " +
-    "co.th com.tw com.hk co.kr com.ua com.pe com.co com.ve com.eg com.sa " +
-    "com.vn co.ug co.tz com.gh com.bd com.np com.lb com.tn com.uy com.ec")
-    .split(" "),
+/**
+ * Registrierbare Domain — dieselbe Regel wie in `gn_basisdomain()` (Migration
+ * 0027) und in `supabase/functions/ingest/index.ts`.
+ *
+ * **Zweistellige Länderendung + davor ein Verwaltungspräfix → drei Teile.**
+ * Sonst zwei.
+ *
+ * Hier stand eine von Hand gepflegte Liste mit vierzig mehrteiligen Endungen.
+ * Sie war unvollständig — die Welt hat mehrere hundert —, und was nicht
+ * drinstand, wurde auf zwei Bestandteile gekürzt: aus `abc.com.py` wurde
+ * `com.py`. Ergebnis waren **150 Registereinträge, die gar keine Domains sind**,
+ * sondern abgeschnittene öffentliche Suffixe. Über die Hälfte trug sogar einen
+ * Wikidata-Sitz, und jedes `*.com.py` des Bau-Laufs fiel auf dieselbe Zeile
+ * zusammen — es war nicht nur Müll, es waren Kollisionen.
+ *
+ * Eine Liste, die vollständig sein muss, ist die falsche Bauart. Die Präfixe
+ * dagegen sind endlich und stabil.
+ *
+ * Das ist nicht die Public Suffix List — die wäre genauer und brächte eine
+ * Abhängigkeit samt Pflege mit. Für Nachrichtendomains trägt die Regel.
+ */
+const VERWALTUNGSPRAEFIX = new Set(
+  ["com", "co", "net", "org", "gov", "edu", "ac", "or", "ne", "go", "mil", "int"],
 );
 
 function domain(roh) {
   if (!roh) return "";
   let d = String(roh).trim().toLowerCase();
-  d = d.replace(/^[a-z]+:\/\//, "").split("/")[0].split(":")[0];
-  d = d.replace(/^www\d?\./, "");
+  d = d.replace(/^[a-z]+:\/\//, "").split("/")[0].split(":")[0].replace(/\.$/, "");
   const t = d.split(".");
-  if (t.length >= 3 && MEHRTEILIG.has(t.slice(-2).join("."))) return t.slice(-3).join(".");
-  return t.length >= 2 ? t.slice(-2).join(".") : d;
+  if (t.length < 2) return d;
+  if (t.length >= 3 && t[t.length - 1].length === 2 && VERWALTUNGSPRAEFIX.has(t[t.length - 2])) {
+    return t.slice(-3).join(".");
+  }
+  return t.slice(-2).join(".");
 }
 
 const schlafen = (ms) => new Promise((r) => setTimeout(r, ms));

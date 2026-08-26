@@ -20,9 +20,15 @@ const MARKER_LIMIT = 400;
 const PUNKT_QUELLE = "meldungen";
 const PUNKT_EBENE = "meldungen-punkte";
 const SCHEIN_EBENE = "meldungen-schein";
+const GRUPPE_EBENE = "meldungen-gruppe";
 const AUSWAHL_EBENE = "meldungen-auswahl";
 
 const BUBBLE_MIN = 11;
+
+/** Eigendrehung im Normalbetrieb, Grad je Sekunde. */
+const DREHUNG_NORMAL = 2.5;
+/** Eigendrehung während eines Replays — siehe `drehTempo`. */
+const DREHUNG_REPLAY = 0.8;
 
 /**
  * Obergrenze und Sättigung hängen an der Zoomstufe — und das ist der Kern.
@@ -80,20 +86,97 @@ export function bubbleGroesse(n: number, zoom: number): number {
 const FAECHER_LUFT = 4;
 
 /**
+ * Bis zu diesem Halbmesser bleibt es bei **einem** Ring.
+ *
+ * Bei drei oder acht Ereignissen ist ein Ring das Richtige und sah bisher gut
+ * aus — das wird nicht angefasst. Erst wenn er darüber hinauswüchse, beginnt
+ * die Spirale. Bei 11-px-Bubbles kippt es bei rund zwanzig Stück.
+ */
+const FAECHER_EINRING = 46;
+
+/** Grösster Halbmesser des Fächers, in Pixeln. */
+const FAECHER_MAX = 150;
+
+/**
+ * Ab hier — und erst ab hier — wird aufgefächert.
+ *
+ * Der Versatz ist ein **Pixelmass**. Auf Globusstufe sind 70 px mehrere
+ * hundert Kilometer: Ein Ring um Kiew legt Pins nach Belarus und Polen, und
+ * die Karte behauptet damit Orte, an denen nichts geschehen ist.
+ *
+ * Die Schwelle ist nicht gesetzt, sondern hergeleitet — dieselbe wie in
+ * Migration 0020: Die Rasterweite der Datenbank ist `max(0.05, 20 / 2^zoom)`
+ * Grad und läuft ab Zoom 8,64 in die untere Schranke. Ab Stufe 9 schrumpft die
+ * Zelle nicht mehr, sie ist rund 5,5 km breit — Stadtmass. Genau dort sitzen
+ * mehrere Ereignisse auf exakt derselben Koordinate, und nur dort ist ein Ring
+ * die richtige Antwort darauf.
+ *
+ * Das Tor steht bewusst **zusätzlich** zu dem in der Datenbank: Der Snapshot
+ * wird mit einem festen `p_zoom` vorgerechnet und dann bei Startzoom gezeigt.
+ * Die beiden Stufen sind also nicht dieselbe Zahl, und der Ring muss sich nach
+ * der richten, bei der wirklich hingesehen wird.
+ */
+const ORTSSTUFE_ZOOM = 9;
+
+/**
+ * Wie viele Bubbles auf welchen Ring passen.
+ *
+ * Ein **einzelner** Ring trägt nur eine Handvoll. Sein Halbmesser wächst mit
+ * der Zahl (`d / (2·sin(π/k))`), und mit einem Deckel dagegen fangen die
+ * Bubbles ab etwa einem Dutzend an, sich zu überdecken. Über Deir al-Balah
+ * liegen 86 Ereignisse auf derselben Koordinate — als ein Ring wäre das ein
+ * Klumpen, in dem man nichts anwählen kann.
+ *
+ * Deshalb konzentrische Ringe. Der Abstand zwischen zwei Ringen ist ein
+ * Bubble-Durchmesser plus Luft, und auf einen Ring vom Halbmesser r passen
+ * `2πr / schritt` Stück. Die Fläche wächst quadratisch mit dem Halbmesser,
+ * die Zahl also auch: 86 Bubbles zu je 11 px stehen nach fünf Ringen und
+ * 75 px Halbmesser — eine Blüte, keine Wolke.
+ */
+function ringplan(k: number, schritt: number): { r: number; n: number }[] {
+  // `schritt / (2·sin(π/k))` ist genau der Halbmesser, bei dem sich k Kreise
+  // vom Durchmesser `schritt` berühren. Solange der klein bleibt, ist ein Ring
+  // die knappste und ruhigste Anordnung — und genau die, die hier bisher
+  // stand. Die Spirale ist die Antwort auf ein Mengenproblem, nicht auf ein
+  // Gestaltungsproblem, und soll deshalb nicht früher kommen als nötig.
+  const einRing = schritt / (2 * Math.sin(Math.PI / k));
+  if (einRing <= FAECHER_EINRING) return [{ r: einRing, n: k }];
+
+  const plan: { r: number; n: number }[] = [];
+  let uebrig = k;
+  let i = 1;
+  while (uebrig > 0) {
+    // Deckel gegen den pathologischen Fall. Wird er erreicht, drängen sich die
+    // restlichen auf dem äussersten Ring — überlappend, aber im Bild. Ein
+    // Fächer, der über den Bildschirm hinauswächst, hilft niemandem.
+    const r = Math.min(FAECHER_MAX, i * schritt);
+    const platz = Math.max(1, Math.floor((2 * Math.PI * r) / schritt));
+    const n = Math.min(uebrig, platz);
+    plan.push({ r, n });
+    uebrig -= n;
+    i++;
+    if (r >= FAECHER_MAX && uebrig > 0) {
+      plan.push({ r, n: uebrig });
+      break;
+    }
+  }
+  return plan;
+}
+
+/**
  * Ereignisse am selben Ort auffächern.
  *
  * GDELT verortet Meldungen auf Städte. Drei Ereignisse in Zürich bekommen
  * deshalb **exakt** dieselben Koordinaten und lägen ohne Zutun perfekt
  * übereinander — sichtbar wäre nur das oberste.
  *
- * Sie werden auf einen kleinen Ring gesetzt, dessen Halbmesser sich aus der
- * Sehnenlänge ergibt: `d / (2·sin(π/k))` ist genau der Abstand, bei dem sich
- * k Kreise vom Durchmesser d berühren. Ein paar Pixel Luft dazu, und sie
- * hängen beieinander, ohne sich zu verdecken.
- *
  * Der Anfangswinkel kommt aus der kleinsten Ereignis-Kennung der Gruppe, die
  * Reihenfolge ebenfalls. Damit steht die Anordnung bei jedem Aufruf gleich —
  * ein Ereignis, das gestern rechts sass, sitzt heute nicht links.
+ *
+ * Jeder Ring bekommt zusätzlich einen halben Schritt Drehung gegen den
+ * vorigen: Sonst stehen die Bubbles in Speichen, und Speichen liest man als
+ * Struktur, wo keine ist.
  */
 function faecher(
   clusters: Cluster[],
@@ -111,14 +194,16 @@ function faecher(
   for (const gruppe of gruppen.values()) {
     if (gruppe.length < 2) continue;
     const sortiert = [...gruppe].sort((a, b) => (a.event_id ?? a.top_id) - (b.event_id ?? b.top_id));
-    const k = sortiert.length;
     const d = Math.max(...sortiert.map(groesse));
-    const ring = Math.min(70, (d + FAECHER_LUFT) / (2 * Math.sin(Math.PI / k)));
+    const schritt = d + FAECHER_LUFT;
     const basis = ((sortiert[0].event_id ?? sortiert[0].top_id) % 360) * Math.PI / 180;
 
-    sortiert.forEach((c, i) => {
-      const w = basis + (2 * Math.PI * i) / k;
-      versatz.set(c, [Math.cos(w) * ring, Math.sin(w) * ring]);
+    let i = 0;
+    ringplan(sortiert.length, schritt).forEach(({ r, n }, ring) => {
+      for (let j = 0; j < n; j++, i++) {
+        const w = basis + (ring % 2) * Math.PI / n + (2 * Math.PI * j) / n;
+        versatz.set(sortiert[i], [Math.cos(w) * r, Math.sin(w) * r]);
+      }
     });
   }
   return versatz;
@@ -135,6 +220,8 @@ export interface MapOptions {
 
 export class NewsMap {
   private map: MapLibreMap | null = null;
+  /** Läuft gerade ein Replay? Dann tritt die ganze Karte zurück. */
+  private imReplay = false;
   private colorByCategory: Map<CategoryId, string>;
   private onPinClick: (c: Cluster) => void;
   private onZoomChange: (z: number) => void;
@@ -146,6 +233,15 @@ export class NewsMap {
   private auswahl = -1;
   private schleier: HTMLElement | null = null;
   private drehen = true;
+  /**
+   * Drehgeschwindigkeit in Grad je Sekunde.
+   *
+   * Während eines Replays langsamer: Dort steht die Kamera schräg auf die
+   * Bogenebene, und jede Drehung schiebt das Ereignis aus dieser Stellung
+   * heraus. Bei 0,8°/s sind es über einen ganzen Lauf rund 14° — sichtbar
+   * genug, dass die Kugel lebt, klein genug, dass die Schlaufen bleiben.
+   */
+  private drehTempo = DREHUNG_NORMAL;
   private drehTimer: number | undefined;
 
   constructor(private opts: MapOptions) {
@@ -252,7 +348,7 @@ export class NewsMap {
       // Nur weit draussen drehen – beim Hineinzoomen wäre es störend.
       if (this.drehen && this.map && this.map.getZoom() < 2.5) {
         const c = this.map.getCenter();
-        this.map.setCenter([c.lng + 2.5 * dt, c.lat]);
+        this.map.setCenter([c.lng + this.drehTempo * dt, c.lat]);
       }
       requestAnimationFrame(schritt);
     };
@@ -279,6 +375,37 @@ export class NewsMap {
         "circle-radius": ["*", ["get", "r"], 2.1],
         "circle-blur": 1,
         "circle-opacity": 0.4,
+      },
+    });
+    /**
+     * Der Ring sagt, was ein Klick tut.
+     *
+     * Bisher sah eine Bubble mit acht Meldungen **eines** Ereignisses genauso
+     * aus wie eine mit acht **verschiedenen**. Die erste öffnet das Panel, die
+     * zweite zoomt näher heran — und welche von beiden man vor sich hat, sah
+     * man ihr nicht an. Ein Klick, dessen Wirkung man erst nach dem Klicken
+     * kennt, ist ein Ratespiel.
+     *
+     * Ein zweiter, dünner Ring drei Pixel ausserhalb der Bubble heisst: **hier
+     * liegt mehr darunter.** Keine Beschriftung, kein Symbol, kein zweiter
+     * Zustand im Frontend — die Antwort steht schon in `ereignisse`, sie war
+     * nur nie zu sehen.
+     *
+     * Vor der Punktebene, damit der volle Kreis den inneren Teil des Rings
+     * verdeckt und nur der Kranz stehenbleibt.
+     */
+    map.addLayer({
+      id: GRUPPE_EBENE,
+      type: "circle",
+      source: PUNKT_QUELLE,
+      filter: ["==", ["get", "gruppe"], true],
+      paint: {
+        "circle-color": "rgba(0,0,0,0)",
+        "circle-opacity": 0,
+        "circle-radius": ["+", ["get", "r"], 3],
+        "circle-stroke-width": 1.2,
+        "circle-stroke-color": ["get", "farbe"],
+        "circle-stroke-opacity": 0.55,
       },
     });
     map.addLayer({
@@ -364,11 +491,52 @@ export class NewsMap {
     this.auswahlAnwenden();
   }
 
+  /**
+   * Während eines Replays tritt die ganze Karte zurück.
+   *
+   * Nicht dieselbe Stufe wie bei einer Auswahl: Dort bleiben die Nachbarn
+   * lesbar, weil man sie noch anklicken können soll. Hier sollen sie nur noch
+   * andeuten, dass es sie gibt — die Bögen sind dünne Linien, und gegen ein
+   * Feld leuchtender Punkte verlieren sie.
+   *
+   * Kein eigener Zeichenweg: derselbe Durchgang wie die Auswahl, nur mit
+   * anderen Werten. Beide Zustände können gleichzeitig gelten, und dann
+   * gewinnt der schwächere.
+   */
+  replayModus(aktiv: boolean) {
+    if (this.imReplay === aktiv) return;
+    this.imReplay = aktiv;
+
+    /*
+     * Die Kugel dreht **während** des Replays, nicht danach.
+     *
+     * Vorher sah es so aus, als setzte die Drehung am Ende ein. Sie tat es
+     * auch — nur nicht als Folge des Endes: `zentrieren()` beim Öffnen des
+     * Panels ruft `drehenPausieren()`, und das hält 20 Sekunden an. Ein Replay
+     * dauert rund 18. Die Pause lief einfach ab, und das fiel zufällig mit dem
+     * Schluss zusammen.
+     *
+     * Beim Start wird die Pause deshalb aufgehoben und das Tempo gedrosselt.
+     * Wer die Karte anfasst, pausiert weiterhin — die Zuhörer auf `mousedown`
+     * und Co. bleiben unberührt, und ein Handgriff soll die Drehung anhalten,
+     * ob ein Replay läuft oder nicht.
+     */
+    window.clearTimeout(this.drehTimer);
+    this.drehTempo = aktiv ? DREHUNG_REPLAY : DREHUNG_NORMAL;
+    if (aktiv && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      this.drehen = true;
+    }
+
+    this.auswahlAnwenden();
+  }
+
   private auswahlAnwenden() {
     const map = this.map;
     const aktiv = this.auswahl >= 0;
+    const replay = this.imReplay;
 
     this.opts.container.classList.toggle("hat-auswahl", aktiv);
+    this.opts.container.classList.toggle("laeuft-replay", replay);
 
     // HTML-Bubbles: Klasse setzen, das Dimmen macht das Stylesheet.
     this.marker.forEach((m, i) => {
@@ -377,8 +545,15 @@ export class NewsMap {
 
     // GPU-Ebene: Deckkraft senken, Auswahl-Ebene auf den gewählten Index filtern.
     if (map?.getLayer(PUNKT_EBENE)) {
-      map.setPaintProperty(PUNKT_EBENE, "circle-opacity", aktiv ? 0.3 : 1);
-      map.setPaintProperty(SCHEIN_EBENE, "circle-opacity", aktiv ? 0.12 : 0.4);
+      map.setPaintProperty(PUNKT_EBENE, "circle-opacity", replay ? 0.1 : aktiv ? 0.3 : 1);
+      map.setPaintProperty(SCHEIN_EBENE, "circle-opacity", replay ? 0.03 : aktiv ? 0.12 : 0.4);
+      map.setPaintProperty(
+        GRUPPE_EBENE, "circle-stroke-opacity", replay ? 0.05 : aktiv ? 0.16 : 0.55,
+      );
+      // Der starke Schein der Auswahl geht mit: Das Replay setzt seinen eigenen
+      // Marker auf das Ereignis, und zwei Hervorhebungen auf einem Punkt lesen
+      // sich als Fehler im Bild.
+      map.setPaintProperty(AUSWAHL_EBENE, "circle-opacity", replay ? 0.12 : 0.75);
       map.setFilter(AUSWAHL_EBENE, ["==", ["get", "index"], this.auswahl]);
     }
   }
@@ -392,7 +567,18 @@ export class NewsMap {
 
     const vieleMeldungen = this.clusters.length > MARKER_LIMIT;
     const z = this.zoom;
-    const versatz = faecher(this.clusters, (c) => bubbleGroesse(bubbleMenge(c), z));
+    // Oberhalb der Ortsstufe liefert die Datenbank gar keine gleichen
+    // Koordinaten mehr (0020) — die leere Karte hier ist der zweite Riegel,
+    // und er greift auch für den Snapshot, der mit fremdem Zoom gerechnet ist.
+    // **Gerundet**, weil `api.ts` der Datenbank `Math.round(zoom)` übergibt.
+    // Ungerundet gäbe es zwischen 8,5 und 9,0 ein Fenster, in dem die Zelle
+    // schon zerfällt, der Fächer aber noch nicht auffächert — Ereignisse auf
+    // identischer Koordinate lägen dann übereinander, sichtbar nur das
+    // oberste. Beide Seiten müssen dieselbe Zahl prüfen.
+    const versatz: Map<Cluster, [number, number]> =
+      Math.round(z) >= ORTSSTUFE_ZOOM
+        ? faecher(this.clusters, (c) => bubbleGroesse(bubbleMenge(c), z))
+        : new Map();
 
     const quelle = map.getSource(PUNKT_QUELLE) as GeoJSONSource | undefined;
     quelle?.setData({
@@ -407,6 +593,10 @@ export class NewsMap {
           properties: {
             index,
             n: c.n,
+            // Trägt den Unterschied zwischen „öffnet das Panel" und „zoomt
+            // näher heran" auf die Karte. Dieselbe Bedingung wie in
+            // `openCluster` — sie steht bewusst an beiden Stellen gleich.
+            gruppe: (c.ereignisse ?? 1) > 1,
             r: bubbleGroesse(bubbleMenge(c), z) / 2,
             farbe: this.colorFor(c.top_category),
           },
@@ -446,16 +636,24 @@ export class NewsMap {
   private makeBubble(c: Cluster, zoom: number): HTMLElement {
     const groesse = bubbleGroesse(bubbleMenge(c), zoom);
 
+    // Dieselbe Frage wie in `openCluster`: mehrere Ereignisse heisst „näher
+    // heran", eines heisst „Panel auf". Sie steht bewusst an beiden Stellen
+    // wortgleich — was ein Klick tut, soll die Bubble selbst sagen.
+    const gruppe = (c.ereignisse ?? 1) > 1;
+
     const el = document.createElement("button");
-    el.className = "bubble";
+    el.className = gruppe ? "bubble bubble--gruppe" : "bubble";
     el.type = "button";
     el.style.setProperty("--bubble-color", this.colorFor(c.top_category));
     el.style.setProperty("--bubble-size", `${groesse}px`);
-    el.setAttribute(
-      "aria-label",
-      `${tn("count.report", "count.reports", c.n)} – ${c.location_name}`,
-    );
-    el.title = c.location_name;
+
+    const menge = tn("count.report", "count.reports", c.n);
+    // Bei einer Gruppe gehört die Ereigniszahl dazu — sie ist der Grund, warum
+    // der Klick hier etwas anderes tut. Bei einem Ereignis wäre „1 Ereignis"
+    // eine Zeile ohne Neuigkeit.
+    const wirkung = gruppe ? t("map.group", { n: c.ereignisse ?? 0 }) : t("map.single");
+    el.setAttribute("aria-label", `${menge} – ${c.location_name} · ${wirkung}`);
+    el.title = `${c.location_name} · ${wirkung}`;
 
     const kern = document.createElement("span");
     kern.className = "bubble__kern";
@@ -476,16 +674,41 @@ export class NewsMap {
     return this.colorByCategory.get(cat) ?? "#7B808A";
   }
 
+  /**
+   * Die MapLibre-Karte selbst.
+   *
+   * Bewusst schmal und nur für Aufsätze gedacht, die auf **derselben** Kugel
+   * zeichnen — das Replay projiziert seine Bögen mit `project()` und fragt die
+   * Verdeckung ab. Alles, was die Karte *steuert*, geht weiterhin über die
+   * Methoden dieser Klasse; sonst wandert die Kamerahoheit an drei Stellen
+   * gleichzeitig, und keine weiss von den anderen.
+   *
+   * `null`, solange die Karte nicht steht — der Aufrufer muss das prüfen.
+   */
+  get karte(): MapLibreMap | null {
+    return this.map;
+  }
+
   // ---------------------------------------------------------------- Kamera
   /**
    * Zoomstufe für die Datenabfrage.
    *
-   * Die Cluster-Funktion in der Datenbank rechnet mit 0–8 und leitet daraus die
-   * Rasterweite ab. MapLibres Zoom passt dazu unmittelbar; wir kappen nur oben,
-   * damit die Rasterzellen nicht kleiner werden als sinnvoll.
+   * **Hier stand einmal `Math.min(8, …)`**, aus der Zeit von
+   * `articles_clustered`, das nur 0–8 kannte. Die Kappung war seither zweimal
+   * überholt und einmal schädlich:
+   *
+   *   * Die Rasterweite begrenzt sich in der Datenbank selbst
+   *     (`greatest(0.05, 20 / 2^zoom)`) — es kann gar nichts zu fein werden.
+   *   * Seit Migration 0022 trägt der Wert **ab 9** eine eigene Bedeutung: Dort
+   *     zerfällt eine Zelle in ihre Ereignisse. Mit dem Deckel erreichte
+   *     `p_zoom` die 9 nie, und die Zelle zerfiel nie — egal wie nah man
+   *     heranging. Die Migration war korrekt und wirkungslos.
+   *
+   * Also kein Deckel mehr. Nach oben begrenzt die Karte selbst (`maxZoom`),
+   * und das ist die einzige Grenze, die es hier wirklich gibt.
    */
   get zoom(): number {
-    return Math.max(0, Math.min(8, this.map?.getZoom() ?? 1.4));
+    return Math.max(0, this.map?.getZoom() ?? 1.4);
   }
 
   /**

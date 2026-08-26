@@ -13,6 +13,24 @@ export const OWNERSHIP = DATEN.ownership;
 
 const SPEICHER = "globenews.settings.v1";
 
+/**
+ * Beschriftung aus dem Sprachbestand, mit Rückfall auf die Datendatei.
+ *
+ * `data/connectors.json` beschreibt **Struktur** — Kennung, Zustand,
+ * Vorgabewert. Was auf dem Bildschirm steht, gehört in `i18n.ts`. Vorher kamen
+ * Name und Erläuterung direkt aus der JSON-Datei und blieben deutsch, auch wenn
+ * die Oberfläche auf Englisch stand.
+ *
+ * `t()` gibt bei unbekanntem Schlüssel den Schlüssel selbst zurück. Genau daran
+ * erkennen wir hier, dass eine Quelle noch keinen Eintrag hat — dann greift der
+ * Text aus der Datei. So bricht eine neu eingetragene Quelle nichts, sie ist
+ * bloss vorerst einsprachig.
+ */
+function ausBestand(schluessel: string, rueckfall: string | undefined): string {
+  const wert = t(schluessel as TextKey);
+  return wert === schluessel ? (rueckfall ?? "") : wert;
+}
+
 export function defaultSettings(): Settings {
   return {
     connectors: new Set(
@@ -171,11 +189,27 @@ export function createSettingsPanel(opts: SettingsPanelOptions) {
   body.appendChild(sprache);
 
   // ---------------------------------------------------------------- Trägerschaft
-  const traeger = abschnitt(t("settings.ownership"), t("settings.ownershipHint"));
-  for (const o of OWNERSHIP) {
-    traeger.appendChild(ownershipZeile(o, settings, onChange));
+  /**
+   * Ausgeblendet, nicht entfernt.
+   *
+   * Die Trägerschaft wird weiter erhoben (Wikidata P127/P749 fällt in derselben
+   * Abfrage an, die ohnehin läuft), aber die Datenlage trägt keine Anzeige:
+   * `sources.ownership` ist heute ein Typ-Feld, kein Eigentümer — Ringier mit
+   * zwanzig Titeln müsste als *einer* zählen. Ein Filter, der auf so dünnem
+   * Grund steht, behauptet mehr, als er weiss.
+   *
+   * Wieder einschalten, sobald es einen UI-Anwendungsfall vom Rang des Replays
+   * gibt: etwa „wie viele scheinbar unabhängige Stimmen gehören demselben
+   * Haus". Siehe OUTLET-REGISTER.md §9.9.
+   */
+  const TRAEGERSCHAFT_ZEIGEN = false;
+  if (TRAEGERSCHAFT_ZEIGEN) {
+    const traeger = abschnitt(t("settings.ownership"), t("settings.ownershipHint"));
+    for (const o of OWNERSHIP) {
+      traeger.appendChild(ownershipZeile(o, settings, onChange));
+    }
+    body.appendChild(traeger);
   }
-  body.appendChild(traeger);
 
   // ---------------------------------------------------------------- Steuerung
   const oeffnen = () => {
@@ -230,13 +264,13 @@ function schalterZeile(
 
   const name = document.createElement("span");
   name.className = "row__name";
-  name.textContent = c.name;
+  name.textContent = ausBestand(`connector.${c.id}`, c.name);
   if (c.status === "planned") name.append(marke(t("settings.tagPlanned")));
   if (c.status === "unavailable") name.append(marke(t("settings.tagNoApi")));
 
   const note = document.createElement("span");
   note.className = "row__note";
-  note.textContent = c.note ?? "";
+  note.textContent = ausBestand(`connector.${c.id}.note`, c.note);
 
   text.append(name, note);
 
@@ -293,7 +327,7 @@ function ownershipZeile(
   name.textContent = t(`ownership.${o.id}` as TextKey);
   const note = document.createElement("span");
   note.className = "row__note";
-  note.textContent = o.note ?? "";
+  note.textContent = ausBestand(`ownership.${o.id}.note`, o.note);
   text.append(name, note);
 
   zeile.append(box, text);

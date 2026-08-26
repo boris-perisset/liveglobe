@@ -1,878 +1,878 @@
 {
- "generated_at": "2026-08-18T07:18:57.304Z",
- "from": "2026-08-17T07:18:57.304Z",
- "to": "2026-08-18T07:18:57.304Z",
- "_demo": "Beispieldaten zum lokalen Entwickeln. Im Betrieb erzeugt hostpoint/snapshot.php die echte latest.json.",
- "clusters": [
-  {
-   "lat": 48.0408,
-   "lon": 8.8596,
-   "n": 10,
-   "country": "CH",
-   "location_name": "Zürich",
-   "top_id": 1,
-   "top_title": "Zugunglück fordert mehrere Verletzte – Zürich",
-   "top_category": "accidents"
-  },
-  {
-   "lat": 47.4107,
-   "lon": 7.9846,
-   "n": 1,
-   "country": "CH",
-   "location_name": "Zürich",
-   "top_id": 2,
-   "top_title": "Festival zieht Zehntausende an – Zürich",
-   "top_category": "culture"
-  },
-  {
-   "lat": 46.9997,
-   "lon": 6.4798,
-   "n": 9,
-   "country": "CH",
-   "location_name": "Genf",
-   "top_id": 3,
-   "top_title": "Parlament debattiert umstrittene Reform – Genf",
-   "top_category": "politics"
-  },
-  {
-   "lat": 51.8873,
-   "lon": 14.0441,
-   "n": 11,
-   "country": "DE",
-   "location_name": "Berlin",
-   "top_id": 4,
-   "top_title": "Vermittler laden zu neuer Gesprächsrunde – Berlin",
-   "top_category": "peace_talks"
-  },
-  {
-   "lat": 52.4419,
-   "lon": 13.0549,
-   "n": 11,
-   "country": "DE",
-   "location_name": "Berlin",
-   "top_id": 5,
-   "top_title": "Hitzewelle erreicht neuen Höchstwert – Berlin",
-   "top_category": "weather"
-  },
-  {
-   "lat": 49.5977,
-   "lon": 2.8402,
-   "n": 2,
-   "country": "FR",
-   "location_name": "Paris",
-   "top_id": 6,
-   "top_title": "Museum zeigt wiederentdeckte Sammlung – Paris",
-   "top_category": "art"
-  },
-  {
-   "lat": 50.797,
-   "lon": -0.4973,
-   "n": 7,
-   "country": "GB",
-   "location_name": "London",
-   "top_id": 7,
-   "top_title": "Festival zieht Zehntausende an – London",
-   "top_category": "culture"
-  },
-  {
-   "lat": 51.1416,
-   "lon": -0.1012,
-   "n": 1,
-   "country": "GB",
-   "location_name": "London",
-   "top_id": 8,
-   "top_title": "Museum zeigt wiederentdeckte Sammlung – London",
-   "top_category": "art"
-  },
-  {
-   "lat": 40.6591,
-   "lon": -3.3806,
-   "n": 11,
-   "country": "ES",
-   "location_name": "Madrid",
-   "top_id": 9,
-   "top_title": "Überraschender Sieg im Halbfinal – Madrid",
-   "top_category": "sports"
-  },
-  {
-   "lat": 39.9848,
-   "lon": -3.1663,
-   "n": 6,
-   "country": "ES",
-   "location_name": "Madrid",
-   "top_id": 10,
-   "top_title": "Museum zeigt wiederentdeckte Sammlung – Madrid",
-   "top_category": "art"
-  },
-  {
-   "lat": 42.4571,
-   "lon": 12.1603,
-   "n": 1,
-   "country": "IT",
-   "location_name": "Rom",
-   "top_id": 11,
-   "top_title": "Gefechte an der Grenze halten an – Rom",
-   "top_category": "conflicts"
-  },
-  {
-   "lat": 41.1439,
-   "lon": 11.943,
-   "n": 12,
-   "country": "IT",
-   "location_name": "Rom",
-   "top_id": 12,
-   "top_title": "Zugunglück fordert mehrere Verletzte – Rom",
-   "top_category": "accidents"
-  },
-  {
-   "lat": 41.6236,
-   "lon": 12.6792,
-   "n": 9,
-   "country": "IT",
-   "location_name": "Rom",
-   "top_id": 13,
-   "top_title": "Vermittler laden zu neuer Gesprächsrunde – Rom",
-   "top_category": "peace_talks"
-  },
-  {
-   "lat": 52.4023,
-   "lon": 21.2042,
-   "n": 2,
-   "country": "PL",
-   "location_name": "Warschau",
-   "top_id": 14,
-   "top_title": "Museum zeigt wiederentdeckte Sammlung – Warschau",
-   "top_category": "art"
-  },
-  {
-   "lat": 51.5574,
-   "lon": 21.6523,
-   "n": 12,
-   "country": "PL",
-   "location_name": "Warschau",
-   "top_id": 15,
-   "top_title": "Vermittler laden zu neuer Gesprächsrunde – Warschau",
-   "top_category": "peace_talks"
-  },
-  {
-   "lat": 50.0046,
-   "lon": 30.3987,
-   "n": 1,
-   "country": "UA",
-   "location_name": "Kyjiw",
-   "top_id": 16,
-   "top_title": "Museum zeigt wiederentdeckte Sammlung – Kyjiw",
-   "top_category": "art"
-  },
-  {
-   "lat": 55.5249,
-   "lon": 37.6858,
-   "n": 12,
-   "country": "RU",
-   "location_name": "Moskau",
-   "top_id": 17,
-   "top_title": "Gefechte an der Grenze halten an – Moskau",
-   "top_category": "conflicts"
-  },
-  {
-   "lat": 40.7761,
-   "lon": 29.1859,
-   "n": 5,
-   "country": "TR",
-   "location_name": "Istanbul",
-   "top_id": 18,
-   "top_title": "Aussenminister empfängt Delegation – Istanbul",
-   "top_category": "diplomacy"
-  },
-  {
-   "lat": 41.4195,
-   "lon": 28.8699,
-   "n": 10,
-   "country": "TR",
-   "location_name": "Istanbul",
-   "top_id": 19,
-   "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Istanbul",
-   "top_category": "natural_disasters"
-  },
-  {
-   "lat": 30.0922,
-   "lon": 31.658,
-   "n": 8,
-   "country": "EG",
-   "location_name": "Kairo",
-   "top_id": 20,
-   "top_title": "Festival zieht Zehntausende an – Kairo",
-   "top_category": "culture"
-  },
-  {
-   "lat": 6.0995,
-   "lon": 2.5973,
-   "n": 4,
-   "country": "NG",
-   "location_name": "Lagos",
-   "top_id": 21,
-   "top_title": "Aussenminister empfängt Delegation – Lagos",
-   "top_category": "diplomacy"
-  },
-  {
-   "lat": 6.1873,
-   "lon": 4.1599,
-   "n": 10,
-   "country": "NG",
-   "location_name": "Lagos",
-   "top_id": 22,
-   "top_title": "Zugunglück fordert mehrere Verletzte – Lagos",
-   "top_category": "accidents"
-  },
-  {
-   "lat": -0.5667,
-   "lon": 36.9578,
-   "n": 8,
-   "country": "KE",
-   "location_name": "Nairobi",
-   "top_id": 23,
-   "top_title": "Gefechte an der Grenze halten an – Nairobi",
-   "top_category": "conflicts"
-  },
-  {
-   "lat": -1.9385,
-   "lon": 37.352,
-   "n": 9,
-   "country": "KE",
-   "location_name": "Nairobi",
-   "top_id": 24,
-   "top_title": "Gefechte an der Grenze halten an – Nairobi",
-   "top_category": "conflicts"
-  },
-  {
-   "lat": -33.6953,
-   "lon": 19.0112,
-   "n": 5,
-   "country": "ZA",
-   "location_name": "Kapstadt",
-   "top_id": 25,
-   "top_title": "Museum zeigt wiederentdeckte Sammlung – Kapstadt",
-   "top_category": "art"
-  },
-  {
-   "lat": -33.9935,
-   "lon": 17.7324,
-   "n": 11,
-   "country": "ZA",
-   "location_name": "Kapstadt",
-   "top_id": 26,
-   "top_title": "Gefechte an der Grenze halten an – Kapstadt",
-   "top_category": "conflicts"
-  },
-  {
-   "lat": 9.032,
-   "lon": 38.061,
-   "n": 2,
-   "country": "ET",
-   "location_name": "Addis Abeba",
-   "top_id": 27,
-   "top_title": "Festival zieht Zehntausende an – Addis Abeba",
-   "top_category": "culture"
-  },
-  {
-   "lat": 8.9363,
-   "lon": 39.4734,
-   "n": 1,
-   "country": "ET",
-   "location_name": "Addis Abeba",
-   "top_id": 28,
-   "top_title": "Zugunglück fordert mehrere Verletzte – Addis Abeba",
-   "top_category": "accidents"
-  },
-  {
-   "lat": 14.8923,
-   "lon": -17.2739,
-   "n": 7,
-   "country": "SN",
-   "location_name": "Dakar",
-   "top_id": 29,
-   "top_title": "Schutzgebiet wird deutlich erweitert – Dakar",
-   "top_category": "nature"
-  },
-  {
-   "lat": 14.7426,
-   "lon": -17.8969,
-   "n": 3,
-   "country": "SN",
-   "location_name": "Dakar",
-   "top_id": 30,
-   "top_title": "Zugunglück fordert mehrere Verletzte – Dakar",
-   "top_category": "accidents"
-  },
-  {
-   "lat": 14.4475,
-   "lon": -16.6825,
-   "n": 8,
-   "country": "SN",
-   "location_name": "Dakar",
-   "top_id": 31,
-   "top_title": "Gefechte an der Grenze halten an – Dakar",
-   "top_category": "conflicts"
-  },
-  {
-   "lat": -4.7807,
-   "lon": 15.598,
-   "n": 11,
-   "country": "CD",
-   "location_name": "Kinshasa",
-   "top_id": 32,
-   "top_title": "Festival zieht Zehntausende an – Kinshasa",
-   "top_category": "culture"
-  },
-  {
-   "lat": 32.1592,
-   "lon": 35.2098,
-   "n": 8,
-   "country": "IL",
-   "location_name": "Tel Aviv",
-   "top_id": 33,
-   "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Tel Aviv",
-   "top_category": "natural_disasters"
-  },
-  {
-   "lat": 25.9884,
-   "lon": 51.0031,
-   "n": 1,
-   "country": "QA",
-   "location_name": "Doha",
-   "top_id": 34,
-   "top_title": "Museum zeigt wiederentdeckte Sammlung – Doha",
-   "top_category": "art"
-  },
-  {
-   "lat": 35.6113,
-   "lon": 50.975,
-   "n": 10,
-   "country": "IR",
-   "location_name": "Teheran",
-   "top_id": 35,
-   "top_title": "Gefechte an der Grenze halten an – Teheran",
-   "top_category": "conflicts"
-  },
-  {
-   "lat": 28.1338,
-   "lon": 76.9564,
-   "n": 1,
-   "country": "IN",
-   "location_name": "Neu-Delhi",
-   "top_id": 36,
-   "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Neu-Delhi",
-   "top_category": "natural_disasters"
-  },
-  {
-   "lat": 19.6743,
-   "lon": 72.1925,
-   "n": 9,
-   "country": "IN",
-   "location_name": "Mumbai",
-   "top_id": 37,
-   "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Mumbai",
-   "top_category": "natural_disasters"
-  },
-  {
-   "lat": 19.522,
-   "lon": 72.5868,
-   "n": 5,
-   "country": "IN",
-   "location_name": "Mumbai",
-   "top_id": 38,
-   "top_title": "Vermittler laden zu neuer Gesprächsrunde – Mumbai",
-   "top_category": "peace_talks"
-  },
-  {
-   "lat": 18.9587,
-   "lon": 73.186,
-   "n": 9,
-   "country": "IN",
-   "location_name": "Mumbai",
-   "top_id": 39,
-   "top_title": "Überraschender Sieg im Halbfinal – Mumbai",
-   "top_category": "sports"
-  },
-  {
-   "lat": 23.5097,
-   "lon": 90.58,
-   "n": 10,
-   "country": "BD",
-   "location_name": "Dhaka",
-   "top_id": 40,
-   "top_title": "Aussenminister empfängt Delegation – Dhaka",
-   "top_category": "diplomacy"
-  },
-  {
-   "lat": 23.638,
-   "lon": 89.6993,
-   "n": 1,
-   "country": "BD",
-   "location_name": "Dhaka",
-   "top_id": 41,
-   "top_title": "Schutzgebiet wird deutlich erweitert – Dhaka",
-   "top_category": "nature"
-  },
-  {
-   "lat": 23.9016,
-   "lon": 90.5287,
-   "n": 11,
-   "country": "BD",
-   "location_name": "Dhaka",
-   "top_id": 42,
-   "top_title": "Hitzewelle erreicht neuen Höchstwert – Dhaka",
-   "top_category": "weather"
-  },
-  {
-   "lat": 14.3429,
-   "lon": 99.7817,
-   "n": 5,
-   "country": "TH",
-   "location_name": "Bangkok",
-   "top_id": 43,
-   "top_title": "Hitzewelle erreicht neuen Höchstwert – Bangkok",
-   "top_category": "weather"
-  },
-  {
-   "lat": 13.015,
-   "lon": 100.4585,
-   "n": 9,
-   "country": "TH",
-   "location_name": "Bangkok",
-   "top_id": 44,
-   "top_title": "Aussenminister empfängt Delegation – Bangkok",
-   "top_category": "diplomacy"
-  },
-  {
-   "lat": 14.3053,
-   "lon": 100.7814,
-   "n": 8,
-   "country": "TH",
-   "location_name": "Bangkok",
-   "top_id": 45,
-   "top_title": "Überraschender Sieg im Halbfinal – Bangkok",
-   "top_category": "sports"
-  },
-  {
-   "lat": -6.1045,
-   "lon": 106.5373,
-   "n": 2,
-   "country": "ID",
-   "location_name": "Jakarta",
-   "top_id": 46,
-   "top_title": "Hitzewelle erreicht neuen Höchstwert – Jakarta",
-   "top_category": "weather"
-  },
-  {
-   "lat": 0.8493,
-   "lon": 104.1486,
-   "n": 1,
-   "country": "SG",
-   "location_name": "Singapur",
-   "top_id": 47,
-   "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Singapur",
-   "top_category": "natural_disasters"
-  },
-  {
-   "lat": 39.3125,
-   "lon": 115.8866,
-   "n": 1,
-   "country": "CN",
-   "location_name": "Peking",
-   "top_id": 48,
-   "top_title": "Festival zieht Zehntausende an – Peking",
-   "top_category": "culture"
-  },
-  {
-   "lat": 36.072,
-   "lon": 139.4093,
-   "n": 5,
-   "country": "JP",
-   "location_name": "Tokio",
-   "top_id": 49,
-   "top_title": "Hitzewelle erreicht neuen Höchstwert – Tokio",
-   "top_category": "weather"
-  },
-  {
-   "lat": 37.7682,
-   "lon": 127.4983,
-   "n": 8,
-   "country": "KR",
-   "location_name": "Seoul",
-   "top_id": 50,
-   "top_title": "Aussenminister empfängt Delegation – Seoul",
-   "top_category": "diplomacy"
-  },
-  {
-   "lat": 36.7745,
-   "lon": 126.25,
-   "n": 1,
-   "country": "KR",
-   "location_name": "Seoul",
-   "top_id": 51,
-   "top_title": "Aussenminister empfängt Delegation – Seoul",
-   "top_category": "diplomacy"
-  },
-  {
-   "lat": 37.5984,
-   "lon": 126.4635,
-   "n": 9,
-   "country": "KR",
-   "location_name": "Seoul",
-   "top_id": 52,
-   "top_title": "Parlament debattiert umstrittene Reform – Seoul",
-   "top_category": "politics"
-  },
-  {
-   "lat": -34.5187,
-   "lon": 150.8546,
-   "n": 6,
-   "country": "AU",
-   "location_name": "Sydney",
-   "top_id": 53,
-   "top_title": "Aussenminister empfängt Delegation – Sydney",
-   "top_category": "diplomacy"
-  },
-  {
-   "lat": -34.4079,
-   "lon": 151.4353,
-   "n": 11,
-   "country": "AU",
-   "location_name": "Sydney",
-   "top_id": 54,
-   "top_title": "Festival zieht Zehntausende an – Sydney",
-   "top_category": "culture"
-  },
-  {
-   "lat": -33.2623,
-   "lon": 150.609,
-   "n": 9,
-   "country": "AU",
-   "location_name": "Sydney",
-   "top_id": 55,
-   "top_title": "Aussenminister empfängt Delegation – Sydney",
-   "top_category": "diplomacy"
-  },
-  {
-   "lat": -36.811,
-   "lon": 175.1513,
-   "n": 4,
-   "country": "NZ",
-   "location_name": "Auckland",
-   "top_id": 56,
-   "top_title": "Schutzgebiet wird deutlich erweitert – Auckland",
-   "top_category": "nature"
-  },
-  {
-   "lat": -17.406,
-   "lon": 177.7496,
-   "n": 1,
-   "country": "FJ",
-   "location_name": "Suva",
-   "top_id": 57,
-   "top_title": "Festival zieht Zehntausende an – Suva",
-   "top_category": "culture"
-  },
-  {
-   "lat": -18.4599,
-   "lon": 178.1975,
-   "n": 3,
-   "country": "FJ",
-   "location_name": "Suva",
-   "top_id": 58,
-   "top_title": "Zugunglück fordert mehrere Verletzte – Suva",
-   "top_category": "accidents"
-  },
-  {
-   "lat": 40.3326,
-   "lon": -73.8859,
-   "n": 6,
-   "country": "US",
-   "location_name": "New York",
-   "top_id": 59,
-   "top_title": "Gefechte an der Grenze halten an – New York",
-   "top_category": "conflicts"
-  },
-  {
-   "lat": 40.6546,
-   "lon": -74.0764,
-   "n": 2,
-   "country": "US",
-   "location_name": "New York",
-   "top_id": 60,
-   "top_title": "Vermittler laden zu neuer Gesprächsrunde – New York",
-   "top_category": "peace_talks"
-  },
-  {
-   "lat": 39.4224,
-   "lon": -77.7565,
-   "n": 11,
-   "country": "US",
-   "location_name": "Washington",
-   "top_id": 61,
-   "top_title": "Museum zeigt wiederentdeckte Sammlung – Washington",
-   "top_category": "art"
-  },
-  {
-   "lat": 39.2817,
-   "lon": -76.7819,
-   "n": 5,
-   "country": "US",
-   "location_name": "Washington",
-   "top_id": 62,
-   "top_title": "Hitzewelle erreicht neuen Höchstwert – Washington",
-   "top_category": "weather"
-  },
-  {
-   "lat": 34.2519,
-   "lon": -117.4843,
-   "n": 4,
-   "country": "US",
-   "location_name": "Los Angeles",
-   "top_id": 63,
-   "top_title": "Hitzewelle erreicht neuen Höchstwert – Los Angeles",
-   "top_category": "weather"
-  },
-  {
-   "lat": 44.3645,
-   "lon": -78.8649,
-   "n": 8,
-   "country": "CA",
-   "location_name": "Toronto",
-   "top_id": 64,
-   "top_title": "Aussenminister empfängt Delegation – Toronto",
-   "top_category": "diplomacy"
-  },
-  {
-   "lat": 43.8768,
-   "lon": -78.6335,
-   "n": 1,
-   "country": "CA",
-   "location_name": "Toronto",
-   "top_id": 65,
-   "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Toronto",
-   "top_category": "natural_disasters"
-  },
-  {
-   "lat": 18.7792,
-   "lon": -98.4488,
-   "n": 4,
-   "country": "MX",
-   "location_name": "Mexiko-Stadt",
-   "top_id": 66,
-   "top_title": "Überraschender Sieg im Halbfinal – Mexiko-Stadt",
-   "top_category": "sports"
-  },
-  {
-   "lat": 4.9892,
-   "lon": -73.9738,
-   "n": 3,
-   "country": "CO",
-   "location_name": "Bogotá",
-   "top_id": 67,
-   "top_title": "Zugunglück fordert mehrere Verletzte – Bogotá",
-   "top_category": "accidents"
-  },
-  {
-   "lat": 4.9197,
-   "lon": -73.9363,
-   "n": 8,
-   "country": "CO",
-   "location_name": "Bogotá",
-   "top_id": 68,
-   "top_title": "Vermittler laden zu neuer Gesprächsrunde – Bogotá",
-   "top_category": "peace_talks"
-  },
-  {
-   "lat": -11.3876,
-   "lon": -76.3096,
-   "n": 2,
-   "country": "PE",
-   "location_name": "Lima",
-   "top_id": 69,
-   "top_title": "Festival zieht Zehntausende an – Lima",
-   "top_category": "culture"
-  },
-  {
-   "lat": -12.5586,
-   "lon": -76.2698,
-   "n": 2,
-   "country": "PE",
-   "location_name": "Lima",
-   "top_id": 70,
-   "top_title": "Schutzgebiet wird deutlich erweitert – Lima",
-   "top_category": "nature"
-  },
-  {
-   "lat": -12.2132,
-   "lon": -77.4405,
-   "n": 1,
-   "country": "PE",
-   "location_name": "Lima",
-   "top_id": 71,
-   "top_title": "Hitzewelle erreicht neuen Höchstwert – Lima",
-   "top_category": "weather"
-  },
-  {
-   "lat": -22.8584,
-   "lon": -46.9117,
-   "n": 5,
-   "country": "BR",
-   "location_name": "São Paulo",
-   "top_id": 72,
-   "top_title": "Zugunglück fordert mehrere Verletzte – São Paulo",
-   "top_category": "accidents"
-  },
-  {
-   "lat": -34.9101,
-   "lon": -59.0917,
-   "n": 5,
-   "country": "AR",
-   "location_name": "Buenos Aires",
-   "top_id": 73,
-   "top_title": "Aussenminister empfängt Delegation – Buenos Aires",
-   "top_category": "diplomacy"
-  },
-  {
-   "lat": -33.0245,
-   "lon": -70.0235,
-   "n": 3,
-   "country": "CL",
-   "location_name": "Santiago",
-   "top_id": 74,
-   "top_title": "Museum zeigt wiederentdeckte Sammlung – Santiago",
-   "top_category": "art"
-  },
-  {
-   "lat": 63.746,
-   "lon": -21.3908,
-   "n": 3,
-   "country": "IS",
-   "location_name": "Reykjavík",
-   "top_id": 75,
-   "top_title": "Parlament debattiert umstrittene Reform – Reykjavík",
-   "top_category": "politics"
-  },
-  {
-   "lat": 59.5208,
-   "lon": 10.5749,
-   "n": 11,
-   "country": "NO",
-   "location_name": "Oslo",
-   "top_id": 76,
-   "top_title": "Schutzgebiet wird deutlich erweitert – Oslo",
-   "top_category": "nature"
-  },
-  {
-   "lat": 48.0344,
-   "lon": 107.6291,
-   "n": 3,
-   "country": "MN",
-   "location_name": "Ulaanbaatar",
-   "top_id": 77,
-   "top_title": "Aussenminister empfängt Delegation – Ulaanbaatar",
-   "top_category": "diplomacy"
-  },
-  {
-   "lat": 47.2937,
-   "lon": 107.3334,
-   "n": 7,
-   "country": "MN",
-   "location_name": "Ulaanbaatar",
-   "top_id": 78,
-   "top_title": "Festival zieht Zehntausende an – Ulaanbaatar",
-   "top_category": "culture"
-  },
-  {
-   "lat": 40.6801,
-   "lon": 68.729,
-   "n": 10,
-   "country": "UZ",
-   "location_name": "Taschkent",
-   "top_id": 79,
-   "top_title": "Museum zeigt wiederentdeckte Sammlung – Taschkent",
-   "top_category": "art"
-  },
-  {
-   "lat": 35.3224,
-   "lon": 68.9503,
-   "n": 8,
-   "country": "AF",
-   "location_name": "Kabul",
-   "top_id": 80,
-   "top_title": "Gefechte an der Grenze halten an – Kabul",
-   "top_category": "conflicts"
-  },
-  {
-   "lat": 34.3024,
-   "lon": 68.9825,
-   "n": 6,
-   "country": "AF",
-   "location_name": "Kabul",
-   "top_id": 81,
-   "top_title": "Überraschender Sieg im Halbfinal – Kabul",
-   "top_category": "sports"
-  },
-  {
-   "lat": 35.2406,
-   "lon": 69.7015,
-   "n": 1,
-   "country": "AF",
-   "location_name": "Kabul",
-   "top_id": 82,
-   "top_title": "Gefechte an der Grenze halten an – Kabul",
-   "top_category": "conflicts"
-  },
-  {
-   "lat": -9.9325,
-   "lon": 147.5726,
-   "n": 5,
-   "country": "PG",
-   "location_name": "Port Moresby",
-   "top_id": 83,
-   "top_title": "Parlament debattiert umstrittene Reform – Port Moresby",
-   "top_category": "politics"
-  },
-  {
-   "lat": -9.0434,
-   "lon": 147.7585,
-   "n": 8,
-   "country": "PG",
-   "location_name": "Port Moresby",
-   "top_id": 84,
-   "top_title": "Überraschender Sieg im Halbfinal – Port Moresby",
-   "top_category": "sports"
-  },
-  {
-   "lat": -18.8881,
-   "lon": 48.1254,
-   "n": 2,
-   "country": "MG",
-   "location_name": "Antananarivo",
-   "top_id": 85,
-   "top_title": "Schutzgebiet wird deutlich erweitert – Antananarivo",
-   "top_category": "nature"
-  },
-  {
-   "lat": -19.1789,
-   "lon": 47.2233,
-   "n": 5,
-   "country": "MG",
-   "location_name": "Antananarivo",
-   "top_id": 86,
-   "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Antananarivo",
-   "top_category": "natural_disasters"
-  },
-  {
-   "lat": -18.442,
-   "lon": 47.4614,
-   "n": 11,
-   "country": "MG",
-   "location_name": "Antananarivo",
-   "top_id": 87,
-   "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Antananarivo",
-   "top_category": "natural_disasters"
-  }
- ]
+  "generated_at": "2026-08-18T07:18:57.304Z",
+  "from": "2026-08-17T07:18:57.304Z",
+  "to": "2026-08-18T07:18:57.304Z",
+  "_demo": "Beispieldaten zum lokalen Entwickeln. Im Betrieb erzeugt hostpoint/snapshot.php die echte latest.json.",
+  "clusters": [
+    {
+      "lat": 48.0408,
+      "lon": 8.8596,
+      "n": 10,
+      "country": "CH",
+      "location_name": "Zürich",
+      "top_id": 1,
+      "top_title": "Zugunglück fordert mehrere Verletzte – Zürich",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": 47.4107,
+      "lon": 7.9846,
+      "n": 1,
+      "country": "CH",
+      "location_name": "Zürich",
+      "top_id": 2,
+      "top_title": "Festival zieht Zehntausende an – Zürich",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 46.9997,
+      "lon": 6.4798,
+      "n": 9,
+      "country": "CH",
+      "location_name": "Genf",
+      "top_id": 3,
+      "top_title": "Parlament debattiert umstrittene Reform – Genf",
+      "top_category": "politics"
+    },
+    {
+      "lat": 51.8873,
+      "lon": 14.0441,
+      "n": 11,
+      "country": "DE",
+      "location_name": "Berlin",
+      "top_id": 4,
+      "top_title": "Vermittler laden zu neuer Gesprächsrunde – Berlin",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": 52.4419,
+      "lon": 13.0549,
+      "n": 11,
+      "country": "DE",
+      "location_name": "Berlin",
+      "top_id": 5,
+      "top_title": "Hitzewelle erreicht neuen Höchstwert – Berlin",
+      "top_category": "weather"
+    },
+    {
+      "lat": 49.5977,
+      "lon": 2.8402,
+      "n": 2,
+      "country": "FR",
+      "location_name": "Paris",
+      "top_id": 6,
+      "top_title": "Museum zeigt wiederentdeckte Sammlung – Paris",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 50.797,
+      "lon": -0.4973,
+      "n": 7,
+      "country": "GB",
+      "location_name": "London",
+      "top_id": 7,
+      "top_title": "Festival zieht Zehntausende an – London",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 51.1416,
+      "lon": -0.1012,
+      "n": 1,
+      "country": "GB",
+      "location_name": "London",
+      "top_id": 8,
+      "top_title": "Museum zeigt wiederentdeckte Sammlung – London",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 40.6591,
+      "lon": -3.3806,
+      "n": 11,
+      "country": "ES",
+      "location_name": "Madrid",
+      "top_id": 9,
+      "top_title": "Überraschender Sieg im Halbfinal – Madrid",
+      "top_category": "sport"
+    },
+    {
+      "lat": 39.9848,
+      "lon": -3.1663,
+      "n": 6,
+      "country": "ES",
+      "location_name": "Madrid",
+      "top_id": 10,
+      "top_title": "Museum zeigt wiederentdeckte Sammlung – Madrid",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 42.4571,
+      "lon": 12.1603,
+      "n": 1,
+      "country": "IT",
+      "location_name": "Rom",
+      "top_id": 11,
+      "top_title": "Gefechte an der Grenze halten an – Rom",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": 41.1439,
+      "lon": 11.943,
+      "n": 12,
+      "country": "IT",
+      "location_name": "Rom",
+      "top_id": 12,
+      "top_title": "Zugunglück fordert mehrere Verletzte – Rom",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": 41.6236,
+      "lon": 12.6792,
+      "n": 9,
+      "country": "IT",
+      "location_name": "Rom",
+      "top_id": 13,
+      "top_title": "Vermittler laden zu neuer Gesprächsrunde – Rom",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": 52.4023,
+      "lon": 21.2042,
+      "n": 2,
+      "country": "PL",
+      "location_name": "Warschau",
+      "top_id": 14,
+      "top_title": "Museum zeigt wiederentdeckte Sammlung – Warschau",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 51.5574,
+      "lon": 21.6523,
+      "n": 12,
+      "country": "PL",
+      "location_name": "Warschau",
+      "top_id": 15,
+      "top_title": "Vermittler laden zu neuer Gesprächsrunde – Warschau",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": 50.0046,
+      "lon": 30.3987,
+      "n": 1,
+      "country": "UA",
+      "location_name": "Kyjiw",
+      "top_id": 16,
+      "top_title": "Museum zeigt wiederentdeckte Sammlung – Kyjiw",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 55.5249,
+      "lon": 37.6858,
+      "n": 12,
+      "country": "RU",
+      "location_name": "Moskau",
+      "top_id": 17,
+      "top_title": "Gefechte an der Grenze halten an – Moskau",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": 40.7761,
+      "lon": 29.1859,
+      "n": 5,
+      "country": "TR",
+      "location_name": "Istanbul",
+      "top_id": 18,
+      "top_title": "Aussenminister empfängt Delegation – Istanbul",
+      "top_category": "politics"
+    },
+    {
+      "lat": 41.4195,
+      "lon": 28.8699,
+      "n": 10,
+      "country": "TR",
+      "location_name": "Istanbul",
+      "top_id": 19,
+      "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Istanbul",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": 30.0922,
+      "lon": 31.658,
+      "n": 8,
+      "country": "EG",
+      "location_name": "Kairo",
+      "top_id": 20,
+      "top_title": "Festival zieht Zehntausende an – Kairo",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 6.0995,
+      "lon": 2.5973,
+      "n": 4,
+      "country": "NG",
+      "location_name": "Lagos",
+      "top_id": 21,
+      "top_title": "Aussenminister empfängt Delegation – Lagos",
+      "top_category": "politics"
+    },
+    {
+      "lat": 6.1873,
+      "lon": 4.1599,
+      "n": 10,
+      "country": "NG",
+      "location_name": "Lagos",
+      "top_id": 22,
+      "top_title": "Zugunglück fordert mehrere Verletzte – Lagos",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": -0.5667,
+      "lon": 36.9578,
+      "n": 8,
+      "country": "KE",
+      "location_name": "Nairobi",
+      "top_id": 23,
+      "top_title": "Gefechte an der Grenze halten an – Nairobi",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": -1.9385,
+      "lon": 37.352,
+      "n": 9,
+      "country": "KE",
+      "location_name": "Nairobi",
+      "top_id": 24,
+      "top_title": "Gefechte an der Grenze halten an – Nairobi",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": -33.6953,
+      "lon": 19.0112,
+      "n": 5,
+      "country": "ZA",
+      "location_name": "Kapstadt",
+      "top_id": 25,
+      "top_title": "Museum zeigt wiederentdeckte Sammlung – Kapstadt",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": -33.9935,
+      "lon": 17.7324,
+      "n": 11,
+      "country": "ZA",
+      "location_name": "Kapstadt",
+      "top_id": 26,
+      "top_title": "Gefechte an der Grenze halten an – Kapstadt",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": 9.032,
+      "lon": 38.061,
+      "n": 2,
+      "country": "ET",
+      "location_name": "Addis Abeba",
+      "top_id": 27,
+      "top_title": "Festival zieht Zehntausende an – Addis Abeba",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 8.9363,
+      "lon": 39.4734,
+      "n": 1,
+      "country": "ET",
+      "location_name": "Addis Abeba",
+      "top_id": 28,
+      "top_title": "Zugunglück fordert mehrere Verletzte – Addis Abeba",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": 14.8923,
+      "lon": -17.2739,
+      "n": 7,
+      "country": "SN",
+      "location_name": "Dakar",
+      "top_id": 29,
+      "top_title": "Schutzgebiet wird deutlich erweitert – Dakar",
+      "top_category": "environment"
+    },
+    {
+      "lat": 14.7426,
+      "lon": -17.8969,
+      "n": 3,
+      "country": "SN",
+      "location_name": "Dakar",
+      "top_id": 30,
+      "top_title": "Zugunglück fordert mehrere Verletzte – Dakar",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": 14.4475,
+      "lon": -16.6825,
+      "n": 8,
+      "country": "SN",
+      "location_name": "Dakar",
+      "top_id": 31,
+      "top_title": "Gefechte an der Grenze halten an – Dakar",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": -4.7807,
+      "lon": 15.598,
+      "n": 11,
+      "country": "CD",
+      "location_name": "Kinshasa",
+      "top_id": 32,
+      "top_title": "Festival zieht Zehntausende an – Kinshasa",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 32.1592,
+      "lon": 35.2098,
+      "n": 8,
+      "country": "IL",
+      "location_name": "Tel Aviv",
+      "top_id": 33,
+      "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Tel Aviv",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": 25.9884,
+      "lon": 51.0031,
+      "n": 1,
+      "country": "QA",
+      "location_name": "Doha",
+      "top_id": 34,
+      "top_title": "Museum zeigt wiederentdeckte Sammlung – Doha",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 35.6113,
+      "lon": 50.975,
+      "n": 10,
+      "country": "IR",
+      "location_name": "Teheran",
+      "top_id": 35,
+      "top_title": "Gefechte an der Grenze halten an – Teheran",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": 28.1338,
+      "lon": 76.9564,
+      "n": 1,
+      "country": "IN",
+      "location_name": "Neu-Delhi",
+      "top_id": 36,
+      "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Neu-Delhi",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": 19.6743,
+      "lon": 72.1925,
+      "n": 9,
+      "country": "IN",
+      "location_name": "Mumbai",
+      "top_id": 37,
+      "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Mumbai",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": 19.522,
+      "lon": 72.5868,
+      "n": 5,
+      "country": "IN",
+      "location_name": "Mumbai",
+      "top_id": 38,
+      "top_title": "Vermittler laden zu neuer Gesprächsrunde – Mumbai",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": 18.9587,
+      "lon": 73.186,
+      "n": 9,
+      "country": "IN",
+      "location_name": "Mumbai",
+      "top_id": 39,
+      "top_title": "Überraschender Sieg im Halbfinal – Mumbai",
+      "top_category": "sport"
+    },
+    {
+      "lat": 23.5097,
+      "lon": 90.58,
+      "n": 10,
+      "country": "BD",
+      "location_name": "Dhaka",
+      "top_id": 40,
+      "top_title": "Aussenminister empfängt Delegation – Dhaka",
+      "top_category": "politics"
+    },
+    {
+      "lat": 23.638,
+      "lon": 89.6993,
+      "n": 1,
+      "country": "BD",
+      "location_name": "Dhaka",
+      "top_id": 41,
+      "top_title": "Schutzgebiet wird deutlich erweitert – Dhaka",
+      "top_category": "environment"
+    },
+    {
+      "lat": 23.9016,
+      "lon": 90.5287,
+      "n": 11,
+      "country": "BD",
+      "location_name": "Dhaka",
+      "top_id": 42,
+      "top_title": "Hitzewelle erreicht neuen Höchstwert – Dhaka",
+      "top_category": "weather"
+    },
+    {
+      "lat": 14.3429,
+      "lon": 99.7817,
+      "n": 5,
+      "country": "TH",
+      "location_name": "Bangkok",
+      "top_id": 43,
+      "top_title": "Hitzewelle erreicht neuen Höchstwert – Bangkok",
+      "top_category": "weather"
+    },
+    {
+      "lat": 13.015,
+      "lon": 100.4585,
+      "n": 9,
+      "country": "TH",
+      "location_name": "Bangkok",
+      "top_id": 44,
+      "top_title": "Aussenminister empfängt Delegation – Bangkok",
+      "top_category": "politics"
+    },
+    {
+      "lat": 14.3053,
+      "lon": 100.7814,
+      "n": 8,
+      "country": "TH",
+      "location_name": "Bangkok",
+      "top_id": 45,
+      "top_title": "Überraschender Sieg im Halbfinal – Bangkok",
+      "top_category": "sport"
+    },
+    {
+      "lat": -6.1045,
+      "lon": 106.5373,
+      "n": 2,
+      "country": "ID",
+      "location_name": "Jakarta",
+      "top_id": 46,
+      "top_title": "Hitzewelle erreicht neuen Höchstwert – Jakarta",
+      "top_category": "weather"
+    },
+    {
+      "lat": 0.8493,
+      "lon": 104.1486,
+      "n": 1,
+      "country": "SG",
+      "location_name": "Singapur",
+      "top_id": 47,
+      "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Singapur",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": 39.3125,
+      "lon": 115.8866,
+      "n": 1,
+      "country": "CN",
+      "location_name": "Peking",
+      "top_id": 48,
+      "top_title": "Festival zieht Zehntausende an – Peking",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 36.072,
+      "lon": 139.4093,
+      "n": 5,
+      "country": "JP",
+      "location_name": "Tokio",
+      "top_id": 49,
+      "top_title": "Hitzewelle erreicht neuen Höchstwert – Tokio",
+      "top_category": "weather"
+    },
+    {
+      "lat": 37.7682,
+      "lon": 127.4983,
+      "n": 8,
+      "country": "KR",
+      "location_name": "Seoul",
+      "top_id": 50,
+      "top_title": "Aussenminister empfängt Delegation – Seoul",
+      "top_category": "politics"
+    },
+    {
+      "lat": 36.7745,
+      "lon": 126.25,
+      "n": 1,
+      "country": "KR",
+      "location_name": "Seoul",
+      "top_id": 51,
+      "top_title": "Aussenminister empfängt Delegation – Seoul",
+      "top_category": "politics"
+    },
+    {
+      "lat": 37.5984,
+      "lon": 126.4635,
+      "n": 9,
+      "country": "KR",
+      "location_name": "Seoul",
+      "top_id": 52,
+      "top_title": "Parlament debattiert umstrittene Reform – Seoul",
+      "top_category": "politics"
+    },
+    {
+      "lat": -34.5187,
+      "lon": 150.8546,
+      "n": 6,
+      "country": "AU",
+      "location_name": "Sydney",
+      "top_id": 53,
+      "top_title": "Aussenminister empfängt Delegation – Sydney",
+      "top_category": "politics"
+    },
+    {
+      "lat": -34.4079,
+      "lon": 151.4353,
+      "n": 11,
+      "country": "AU",
+      "location_name": "Sydney",
+      "top_id": 54,
+      "top_title": "Festival zieht Zehntausende an – Sydney",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": -33.2623,
+      "lon": 150.609,
+      "n": 9,
+      "country": "AU",
+      "location_name": "Sydney",
+      "top_id": 55,
+      "top_title": "Aussenminister empfängt Delegation – Sydney",
+      "top_category": "politics"
+    },
+    {
+      "lat": -36.811,
+      "lon": 175.1513,
+      "n": 4,
+      "country": "NZ",
+      "location_name": "Auckland",
+      "top_id": 56,
+      "top_title": "Schutzgebiet wird deutlich erweitert – Auckland",
+      "top_category": "environment"
+    },
+    {
+      "lat": -17.406,
+      "lon": 177.7496,
+      "n": 1,
+      "country": "FJ",
+      "location_name": "Suva",
+      "top_id": 57,
+      "top_title": "Festival zieht Zehntausende an – Suva",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": -18.4599,
+      "lon": 178.1975,
+      "n": 3,
+      "country": "FJ",
+      "location_name": "Suva",
+      "top_id": 58,
+      "top_title": "Zugunglück fordert mehrere Verletzte – Suva",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": 40.3326,
+      "lon": -73.8859,
+      "n": 6,
+      "country": "US",
+      "location_name": "New York",
+      "top_id": 59,
+      "top_title": "Gefechte an der Grenze halten an – New York",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": 40.6546,
+      "lon": -74.0764,
+      "n": 2,
+      "country": "US",
+      "location_name": "New York",
+      "top_id": 60,
+      "top_title": "Vermittler laden zu neuer Gesprächsrunde – New York",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": 39.4224,
+      "lon": -77.7565,
+      "n": 11,
+      "country": "US",
+      "location_name": "Washington",
+      "top_id": 61,
+      "top_title": "Museum zeigt wiederentdeckte Sammlung – Washington",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 39.2817,
+      "lon": -76.7819,
+      "n": 5,
+      "country": "US",
+      "location_name": "Washington",
+      "top_id": 62,
+      "top_title": "Hitzewelle erreicht neuen Höchstwert – Washington",
+      "top_category": "weather"
+    },
+    {
+      "lat": 34.2519,
+      "lon": -117.4843,
+      "n": 4,
+      "country": "US",
+      "location_name": "Los Angeles",
+      "top_id": 63,
+      "top_title": "Hitzewelle erreicht neuen Höchstwert – Los Angeles",
+      "top_category": "weather"
+    },
+    {
+      "lat": 44.3645,
+      "lon": -78.8649,
+      "n": 8,
+      "country": "CA",
+      "location_name": "Toronto",
+      "top_id": 64,
+      "top_title": "Aussenminister empfängt Delegation – Toronto",
+      "top_category": "politics"
+    },
+    {
+      "lat": 43.8768,
+      "lon": -78.6335,
+      "n": 1,
+      "country": "CA",
+      "location_name": "Toronto",
+      "top_id": 65,
+      "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Toronto",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": 18.7792,
+      "lon": -98.4488,
+      "n": 4,
+      "country": "MX",
+      "location_name": "Mexiko-Stadt",
+      "top_id": 66,
+      "top_title": "Überraschender Sieg im Halbfinal – Mexiko-Stadt",
+      "top_category": "sport"
+    },
+    {
+      "lat": 4.9892,
+      "lon": -73.9738,
+      "n": 3,
+      "country": "CO",
+      "location_name": "Bogotá",
+      "top_id": 67,
+      "top_title": "Zugunglück fordert mehrere Verletzte – Bogotá",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": 4.9197,
+      "lon": -73.9363,
+      "n": 8,
+      "country": "CO",
+      "location_name": "Bogotá",
+      "top_id": 68,
+      "top_title": "Vermittler laden zu neuer Gesprächsrunde – Bogotá",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": -11.3876,
+      "lon": -76.3096,
+      "n": 2,
+      "country": "PE",
+      "location_name": "Lima",
+      "top_id": 69,
+      "top_title": "Festival zieht Zehntausende an – Lima",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": -12.5586,
+      "lon": -76.2698,
+      "n": 2,
+      "country": "PE",
+      "location_name": "Lima",
+      "top_id": 70,
+      "top_title": "Schutzgebiet wird deutlich erweitert – Lima",
+      "top_category": "environment"
+    },
+    {
+      "lat": -12.2132,
+      "lon": -77.4405,
+      "n": 1,
+      "country": "PE",
+      "location_name": "Lima",
+      "top_id": 71,
+      "top_title": "Hitzewelle erreicht neuen Höchstwert – Lima",
+      "top_category": "weather"
+    },
+    {
+      "lat": -22.8584,
+      "lon": -46.9117,
+      "n": 5,
+      "country": "BR",
+      "location_name": "São Paulo",
+      "top_id": 72,
+      "top_title": "Zugunglück fordert mehrere Verletzte – São Paulo",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": -34.9101,
+      "lon": -59.0917,
+      "n": 5,
+      "country": "AR",
+      "location_name": "Buenos Aires",
+      "top_id": 73,
+      "top_title": "Aussenminister empfängt Delegation – Buenos Aires",
+      "top_category": "politics"
+    },
+    {
+      "lat": -33.0245,
+      "lon": -70.0235,
+      "n": 3,
+      "country": "CL",
+      "location_name": "Santiago",
+      "top_id": 74,
+      "top_title": "Museum zeigt wiederentdeckte Sammlung – Santiago",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 63.746,
+      "lon": -21.3908,
+      "n": 3,
+      "country": "IS",
+      "location_name": "Reykjavík",
+      "top_id": 75,
+      "top_title": "Parlament debattiert umstrittene Reform – Reykjavík",
+      "top_category": "politics"
+    },
+    {
+      "lat": 59.5208,
+      "lon": 10.5749,
+      "n": 11,
+      "country": "NO",
+      "location_name": "Oslo",
+      "top_id": 76,
+      "top_title": "Schutzgebiet wird deutlich erweitert – Oslo",
+      "top_category": "environment"
+    },
+    {
+      "lat": 48.0344,
+      "lon": 107.6291,
+      "n": 3,
+      "country": "MN",
+      "location_name": "Ulaanbaatar",
+      "top_id": 77,
+      "top_title": "Aussenminister empfängt Delegation – Ulaanbaatar",
+      "top_category": "politics"
+    },
+    {
+      "lat": 47.2937,
+      "lon": 107.3334,
+      "n": 7,
+      "country": "MN",
+      "location_name": "Ulaanbaatar",
+      "top_id": 78,
+      "top_title": "Festival zieht Zehntausende an – Ulaanbaatar",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 40.6801,
+      "lon": 68.729,
+      "n": 10,
+      "country": "UZ",
+      "location_name": "Taschkent",
+      "top_id": 79,
+      "top_title": "Museum zeigt wiederentdeckte Sammlung – Taschkent",
+      "top_category": "arts_culture"
+    },
+    {
+      "lat": 35.3224,
+      "lon": 68.9503,
+      "n": 8,
+      "country": "AF",
+      "location_name": "Kabul",
+      "top_id": 80,
+      "top_title": "Gefechte an der Grenze halten an – Kabul",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": 34.3024,
+      "lon": 68.9825,
+      "n": 6,
+      "country": "AF",
+      "location_name": "Kabul",
+      "top_id": 81,
+      "top_title": "Überraschender Sieg im Halbfinal – Kabul",
+      "top_category": "sport"
+    },
+    {
+      "lat": 35.2406,
+      "lon": 69.7015,
+      "n": 1,
+      "country": "AF",
+      "location_name": "Kabul",
+      "top_id": 82,
+      "top_title": "Gefechte an der Grenze halten an – Kabul",
+      "top_category": "conflict_war_peace"
+    },
+    {
+      "lat": -9.9325,
+      "lon": 147.5726,
+      "n": 5,
+      "country": "PG",
+      "location_name": "Port Moresby",
+      "top_id": 83,
+      "top_title": "Parlament debattiert umstrittene Reform – Port Moresby",
+      "top_category": "politics"
+    },
+    {
+      "lat": -9.0434,
+      "lon": 147.7585,
+      "n": 8,
+      "country": "PG",
+      "location_name": "Port Moresby",
+      "top_id": 84,
+      "top_title": "Überraschender Sieg im Halbfinal – Port Moresby",
+      "top_category": "sport"
+    },
+    {
+      "lat": -18.8881,
+      "lon": 48.1254,
+      "n": 2,
+      "country": "MG",
+      "location_name": "Antananarivo",
+      "top_id": 85,
+      "top_title": "Schutzgebiet wird deutlich erweitert – Antananarivo",
+      "top_category": "environment"
+    },
+    {
+      "lat": -19.1789,
+      "lon": 47.2233,
+      "n": 5,
+      "country": "MG",
+      "location_name": "Antananarivo",
+      "top_id": 86,
+      "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Antananarivo",
+      "top_category": "disaster_accident"
+    },
+    {
+      "lat": -18.442,
+      "lon": 47.4614,
+      "n": 11,
+      "country": "MG",
+      "location_name": "Antananarivo",
+      "top_id": 87,
+      "top_title": "Schwere Überschwemmungen nach anhaltendem Regen – Antananarivo",
+      "top_category": "disaster_accident"
+    }
+  ]
 }

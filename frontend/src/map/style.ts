@@ -10,6 +10,10 @@ export const PALETTE = {
   ozean: "#0a1420",
   land: "#16222f",
   grenze: "rgba(150,180,215,0.45)",
+  // Die Kuestenlinie muss den Replay-Schleier ueberleben (66 % Schwarz
+  // darueber). Deshalb heller als die Verwaltungsgrenze — aber haarduenn,
+  // damit sie ohne Schleier nicht dominiert.
+  kueste: "rgba(198,222,246,0.52)",
   strasse: "#1e2c3b",
   gebaeude: "#1b2836",
   text: "#9fb0c4",
@@ -105,7 +109,63 @@ export function einfaerben(stil: StyleSpecification): StyleSpecification {
     "fog-ground-blend": 0.2,
   };
 
+  kuestenlinieEinziehen(stil);
+
   return stil;
+}
+
+/**
+ * Zieht eine feine helle Linie um Land und Seen.
+ *
+ * Warum es sie braucht: Ozean (#0a1420) und Land (#16222f) liegen in der
+ * Helligkeit dicht beieinander — der Stil setzt darauf, dass „die Kanten die
+ * Information tragen". Nur gab es diese Kanten nie: Gefärbt werden Flächen und
+ * Verwaltungsgrenzen, die Küste selbst blieb ungezeichnet. Im normalen Betrieb
+ * fällt das kaum auf, im Replay legt sich ein Schleier aus 66 % Schwarz über
+ * die Karte, und der letzte Rest Unterschied verschwindet.
+ *
+ * Gezeichnet wird der **Umriss der Wasserflächen**. Das ergibt die Küste und
+ * die Seeufer in einem Zug, ohne eine zweite Datenquelle: Die Geometrie liegt
+ * ohnehin schon da, sie wurde bisher nur gefüllt und nicht umrandet.
+ *
+ * Quelle und Ebenenname werden aus dem geladenen Stil **abgelesen**, nicht
+ * angenommen — wie im ganzen Rest dieser Datei. Findet sich keine
+ * Wasserfläche, passiert nichts: lieber keine Küste als eine Ausnahme im
+ * Ladeweg.
+ */
+function kuestenlinieEinziehen(stil: StyleSpecification) {
+  const wasser = (stil.layers ?? []).find((l) => {
+    const q = l as { type?: string; source?: string; "source-layer"?: string; id: string };
+    return q.type === "fill" && !!q.source && !!q["source-layer"] &&
+      /water|ocean|sea/.test(q.id.toLowerCase());
+  }) as { source: string; "source-layer": string } | undefined;
+  if (!wasser) return;
+
+  // Über die Fläche, aber unter die Beschriftungen: Ein Ortsname, den eine
+  // Linie durchschneidet, ist schlechter lesbar als einer ohne Küste daneben.
+  const ersteSchrift = (stil.layers ?? []).findIndex((l) => l.type === "symbol");
+  const stelle = ersteSchrift === -1 ? (stil.layers ?? []).length : ersteSchrift;
+
+  (stil.layers ?? []).splice(stelle, 0, {
+    id: "gn-kuestenlinie",
+    type: "line",
+    source: wasser.source,
+    "source-layer": wasser["source-layer"],
+    // Nur Flächen. Flüsse liegen in derselben Ebene als Linien und würden sonst
+    // doppelt gezeichnet — einmal als Fluss, einmal als eigener Umriss.
+    filter: ["==", ["geometry-type"], "Polygon"],
+    paint: {
+      "line-color": PALETTE.kueste,
+      // Haarlinie auf der Kugel, etwas kräftiger beim Hineinzoomen. Ein fester
+      // Wert wäre aus der Ferne unsichtbar oder aus der Nähe ein Balken.
+      "line-width": ["interpolate", ["linear"], ["zoom"],
+        0, 0.6,
+        3, 0.8,
+        6, 1.1,
+        10, 1.4],
+      "line-opacity": ["interpolate", ["linear"], ["zoom"], 0, 1, 8, 0.75],
+    },
+  } as never);
 }
 
 /**

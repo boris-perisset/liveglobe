@@ -124,6 +124,46 @@ button, input, select { font-family: inherit; }
   letter-spacing: 0;
 }
 
+/* Das Beta-Etikett sitzt im Titel, nicht als Banner über der Kugel: Es soll
+   die Einschränkung nennen, ohne die Sache zu verdecken. */
+.brand__beta {
+  margin-left: 7px;
+  padding: 1px 7px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: none;
+  color: var(--fg-3);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: 2px;
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+.brand__beta:hover,
+.brand__beta:focus-visible {
+  color: var(--fg);
+  border-color: var(--fg-3);
+}
+
+.info__block--beta ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+.info__block--beta li {
+  margin-bottom: 9px;
+  color: var(--fg-2);
+}
+.info__block--beta h4 {
+  margin: 18px 0 0;
+}
+.info__schluss {
+  margin-top: 14px;
+  color: var(--fg-3);
+}
+
 /* ------------------------------------------------------------------ Rubriken */
 .filters {
   display: flex;
@@ -1064,15 +1104,6 @@ button, input, select { font-family: inherit; }
 
 /* Sichtbar als offene Stelle markiert, damit der Platzhalter nicht
    versehentlich live geht. */
-.info__platzhalter {
-  display: inline-block;
-  padding: 1px 7px;
-  border-radius: 5px;
-  background: rgba(220, 168, 78, .14);
-  border: 1px dashed rgba(220, 168, 78, .45);
-  color: #DCA84E;
-  font-size: 12px;
-}
 
 .info__fuss {
   margin-top: 26px;
@@ -1086,3 +1117,279 @@ button, input, select { font-family: inherit; }
   .info { max-height: 88vh; }
   .info__inhalt { padding: 24px 20px 24px; }
 }
+
+/* ==========================================================================
+   Replay – die Verbreitung eines Ereignisses als Ablauf
+   --------------------------------------------------------------------------
+   Die Leinwand liegt über dem Globus und ist für die Maus durchlässig: Wer
+   während des Abspielens die Kugel dreht, dreht die Bögen mit. Nur die
+   Bedienung nimmt Klicks an.
+
+   Die Tafel sitzt unten links – rechts steht das Panel, unten mittig der
+   Zeitregler. Beide bleiben bedienbar, während das Replay läuft.
+   ========================================================================== */
+
+.replay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.replay__leinwand {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.replay__hud {
+  position: absolute;
+  left: 16px;
+  bottom: 96px;
+  width: min(280px, calc(100vw - 32px));
+  padding: 14px 16px 12px;
+  background: var(--surface);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  pointer-events: auto;
+  display: grid;
+  gap: 10px;
+}
+
+.replay__uhrzeile {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.replay__uhr {
+  font-size: 22px;
+  font-weight: 500;
+  /* Ziffern dürfen beim Weiterlaufen nicht springen – sonst zappelt die
+     ganze Tafel im Takt der Uhr. */
+  font-variant-numeric: tabular-nums;
+}
+.replay__versatz {
+  font-size: 12px;
+  color: var(--fg-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.replay__zahlen {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.replay__zahl {
+  display: grid;
+  gap: 1px;
+}
+.replay__zahl b {
+  font-size: 17px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.replay__zahl span {
+  font-size: 10px;
+  line-height: 1.25;
+  color: var(--fg-3);
+  hyphens: auto;
+}
+
+.replay__leiste {
+  height: 2px;
+  background: var(--line-strong);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.replay__leiste i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--fg-2);
+}
+
+.replay__knoepfe {
+  display: flex;
+  gap: 6px;
+}
+.replay__knopf {
+  flex: 1;
+  font: inherit;
+  font-size: 12px;
+  color: var(--fg-2);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 6px 8px;
+  cursor: pointer;
+}
+.replay__knopf:hover { color: var(--fg); background: rgba(255, 255, 255, 0.09); }
+.replay__knopf:focus-visible { outline: 1px solid var(--fg); outline-offset: 1px; }
+
+.replay__fuss {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--fg-3);
+}
+/* Der Hinweis zur Landesmitte erscheint nur, wenn es ihn braucht. Eine leere
+   Zeile Platz zu halten hiesse, dauerhaft Raum für eine Ausnahme zu
+   reservieren. */
+.replay__fuss:empty { display: none; }
+
+/* Der Knopf im Panel. Er erscheint nur bei genau einem Ereignis mit mehr als
+   einem Medium – die Bedingung steht in `panel.ts`, nicht hier. */
+.panel__replay {
+  margin: 0 18px 12px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--fg-2);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 7px 12px;
+  cursor: pointer;
+  justify-self: start;
+}
+.panel__replay:hover { color: var(--fg); background: rgba(255, 255, 255, 0.09); }
+.panel__replay:focus-visible { outline: 1px solid var(--fg); outline-offset: 1px; }
+.panel__replay[hidden] { display: none; }
+
+@media (max-width: 560px) {
+  /* Auf schmalen Geräten deckt das Panel die Karte ganz zu; die Tafel rückt
+     über den Zeitregler und wird so breit wie der Rest. */
+  .replay__hud {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    bottom: 88px;
+  }
+}
+
+/* ------------------------------------------------- Gruppe oder Ereignis */
+/* Ein zweiter, dünner Ring drei Pixel ausserhalb heisst: hier liegt mehr
+   darunter, ein Klick führt näher heran. Ohne Ring öffnet er das Panel.
+
+   Als `::after` mit `position: absolute` — der Kern ist ein Grid und trägt die
+   Zahl mittig; ein Element im Fluss würde sie verschieben. Die GPU-Fassung ab
+   400 Punkten zeichnet denselben Ring (siehe `GRUPPE_EBENE` in map.ts), damit
+   der Wechsel nicht ins Auge springt. */
+.bubble__kern { position: relative; }
+.bubble--gruppe .bubble__kern::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1.2px solid color-mix(in srgb, var(--bubble-color, #fff) 55%, transparent);
+  pointer-events: none;
+}
+/* Der Ring folgt der Bubble ins Zurücktreten, sonst bleibt ein Kranz über dem
+   Schleier stehen und sieht aus wie ein Fehler im Bild. */
+#globe.hat-auswahl .bubble:not(.ist-gewaehlt) .bubble__kern::after {
+  opacity: .3;
+}
+
+/* ------------------------------------------------- Während eines Replays */
+/* Die Karte tritt stärker zurück als bei einer Auswahl. Dort bleiben die
+   Nachbarn lesbar, weil man sie anklicken können soll; hier sollen sie nur
+   noch andeuten, dass es sie gibt. Die Bögen sind dünne Linien und verlieren
+   gegen ein Feld leuchtender Punkte.
+
+   Alle drei Fälle ausgeschrieben — auch der gewählte Punkt tritt zurück, denn
+   das Replay setzt seinen eigenen Marker auf das Ereignis. Zwei Hervorhebungen
+   auf demselben Punkt lesen sich als Fehler im Bild. */
+#globe.laeuft-replay .bubble .bubble__kern,
+#globe.laeuft-replay.hat-auswahl .bubble .bubble__kern,
+#globe.laeuft-replay.hat-auswahl .bubble.ist-gewaehlt .bubble__kern {
+  opacity: .1;
+  box-shadow: none;
+  animation: none;
+  transform: none;
+}
+#globe.laeuft-replay .bubble .bubble__kern::after,
+#globe.laeuft-replay.hat-auswahl .bubble:not(.ist-gewaehlt) .bubble__kern::after {
+  opacity: .1;
+}
+/* Der Schleier liegt unter den Bubbles und über der Karte — er nimmt dem
+   Untergrund die Helligkeit, gegen die die Bögen sonst anzukommen hätten. */
+#globe.laeuft-replay .globus-schleier { opacity: 1; }
+
+/* ------------------------------------------- Weiteste Verbreitung (Replays) */
+/* Unter den Rubriken, weil es derselben Frage folgt — „was gibt es gerade?" —
+   und sich mit ihnen ändert. Gibt es nichts, verschwindet die Zeile ganz;
+   Platz für eine Ausnahme freizuhalten wäre dauerhafter Leerraum. */
+.replays {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.replays[hidden] { display: none; }
+
+.replays__marke {
+  font-size: 11px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  white-space: nowrap;
+}
+
+.replays__eintrag {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  max-width: 260px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--fg-2);
+  background: var(--surface);
+  backdrop-filter: blur(14px);
+  /* Der Rubrikton nur als Rand, nicht als Fläche: Die Leiste steht neben den
+     Rubrik-Chips und darf nicht mit ihnen um Aufmerksamkeit streiten. */
+  border: 1px solid color-mix(in srgb, var(--chip-color, #8a8f98) 45%, transparent);
+  border-radius: 999px;
+  padding: 5px 12px 5px 10px;
+  cursor: pointer;
+  text-align: left;
+}
+.replays__eintrag:hover {
+  color: var(--fg);
+  border-color: color-mix(in srgb, var(--chip-color, #8a8f98) 80%, transparent);
+}
+.replays__eintrag:focus-visible { outline: 1px solid var(--fg); outline-offset: 1px; }
+
+/* Die Zahl ist der Grund, warum der Eintrag hier steht, und über alle drei
+   hinweg vergleichbar — sie darf nie umbrechen oder abgeschnitten werden. */
+.replays__eintrag b {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--chip-color, var(--fg-2));
+  flex: none;
+}
+.replays__titel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .replays { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .replays::-webkit-scrollbar { display: none; }
+  .replays__eintrag { max-width: 190px; flex: none; }
+}
+
+/* Die mitgezählten Medien ohne bekannten Sitz — direkt über den Knöpfen, weil
+   sie zum Ablauf gehören und nicht zur Fussnote. Leer, solange alle verortet
+   sind; dann verschwindet die Zeile ganz. */
+.replay__ohne {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--fg-3);
+  border-left: 2px solid var(--line-strong);
+  padding-left: 8px;
+  cursor: help;
+}
+.replay__ohne:empty { display: none; }

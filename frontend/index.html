@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Live Globe — news on a globe</title>
+  <title>Live Globe (beta) — news on a globe</title>
   <meta name="description" content="A spinning globe of current news, placed where the events happen.">
   <meta name="color-scheme" content="dark">
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
@@ -49,7 +49,14 @@
         </button>
         <!-- Der Name läuft bewusst nicht durch die Übersetzung: Ein
              Produktname ist keine Vokabel und heisst in jeder Sprache gleich. -->
-        <h1 class="brand__name">Live Globe</h1>
+        <h1 class="brand__name">Live Globe
+          <!-- Anklickbar, und zwar mit Absicht: Ein „beta", das nirgends
+               hinführt, ist eine Ausrede. Dieses öffnet die Fehlerliste. -->
+          <button id="beta-badge" class="brand__beta" type="button"
+                  data-i18n-attr="aria-label:nav.beta"
+                  aria-label="Beta — how the data is gathered, and what that costs"
+          >beta</button>
+        </h1>
         <span class="brand__claim" data-i18n="app.claim">News where it happens</span>
       </div>
       <nav id="filters" class="filters"></nav>
@@ -99,6 +106,30 @@
           yourself. Article contents are not stored, only metadata and links.
         </p>
 
+        <section class="info__block info__block--beta">
+          <h3 data-i18n="info.beta.h">Beta — how the data is gathered, and what that costs</h3>
+          <p data-i18n="info.beta.intro">
+            Live Globe is a prototype. The way it collects news takes deliberate
+            shortcuts, and those shortcuts leave marks on the globe.
+          </p>
+          <ul class="info__methode">
+            <li data-i18n-html="info.beta.method1">It is a sample, not a complete picture.</li>
+            <li data-i18n-html="info.beta.method2">We forget quickly.</li>
+            <li data-i18n-html="info.beta.method3">The grouping is done by software.</li>
+          </ul>
+          <h4 data-i18n="info.beta.folgeH">What follows from it</h4>
+          <ul class="info__folgen">
+            <li data-i18n-html="info.beta.folge1">A quiet country may be quiet for two very different reasons.</li>
+            <li data-i18n="info.beta.folge2">Some newsroom markers sit in the middle of a country.</li>
+            <li data-i18n="info.beta.folge3">Some sources are not newsrooms at all.</li>
+            <li data-i18n="info.beta.folge4">One large event sometimes appears as several small ones.</li>
+            <li data-i18n="info.beta.folge5">A few entries are simply wrong.</li>
+          </ul>
+          <p class="info__schluss" data-i18n="info.beta.schluss">
+            We would rather show you the gaps than pretend they are not there.
+          </p>
+        </section>
+
         <section class="info__block info__block--herkunft">
           <h3 data-i18n="info.inspiration.h">Where the idea comes from</h3>
           <p data-i18n-html="info.inspiration.p1">
@@ -122,9 +153,8 @@
         <section class="info__block">
           <h3 data-i18n="info.responsible.h">Responsible</h3>
           <p>
-            <span data-i18n-html="info.responsible.p"><a href="https://atelier-perisset.ch/"
-                  target="_blank" rel="noopener">Boris Périsset</a> · concept, design and implementation.</span><br>
-            <span class="info__platzhalter">[Kontaktadresse ergänzen]</span>
+            <span data-i18n-html="info.responsible.p"><a href="https://www.atelier-perisset.ch"
+                  target="_blank" rel="noopener">Boris Périsset</a> · concept, design and implementation.</span>
           </p>
         </section>
 

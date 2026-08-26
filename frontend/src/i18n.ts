@@ -27,9 +27,20 @@ const en = {
   "nav.info": "About this project",
   "nav.close": "Close",
   "nav.globe": "Globe with news markers",
+  "nav.beta": "Beta — how the data is gathered, and what that costs",
 
   "filter.all": "All",
   "filter.aria": "Filter by topic",
+
+  // Was ein Klick auf eine Bubble tut. Steht als Titel und als Vorlesetext an
+  // der Bubble selbst — der Ring zeigt es, diese Zeile sagt es.
+  "map.group": "{n} events – zoom in",
+  "map.single": "open reports",
+
+  // Die Leiste unter den Rubriken: die Ereignisse mit der weitesten belegbaren
+  // Verbreitung. Gezählt werden Medien mit Koordinate — also Bögen.
+  "replays.label": "Widest spread",
+  "replays.aria": "Events worth replaying",
 
   "status.loading": "Loading reports …",
   "status.noSources": "All sources switched off — nothing to show.",
@@ -49,6 +60,25 @@ const en = {
   "panel.unrated": "not rated",
   "panel.unknownSource": "Unknown source",
   "panel.andMore": "and {n} more",
+
+  // Replay — die Verbreitung eines Ereignisses als Ablauf. Siehe
+  // EREIGNISMODELL.md §4: Ein Fächer sagt „zwölf Medien", das Replay sagt, ob
+  // die zwölf in zwanzig Minuten kamen oder über zwei Tage.
+  "replay.open": "Replay",
+  "replay.aria": "Replay: how this event spread",
+  "replay.play": "Play",
+  "replay.pause": "Pause",
+  "replay.again": "Play again",
+  "replay.close": "Close replay",
+  "replay.outlets": "outlets",
+  "replay.countries": "countries",
+  "replay.languages": "languages",
+  "replay.regions": "world regions",
+  "replay.loading": "Loading arcs …",
+  "replay.none": "No outlet of this event has a location yet.",
+  "replay.noSeat": "{n} more counted — newsroom unknown, so not drawn",
+  "replay.geoLand": "{n} sit on a country centre, not on a newsroom.",
+  "replay.geoRegion": "{n} sit on a region centre.",
 
   "count.outlet": "{n} outlet",
   "count.outlets": "{n} outlets",
@@ -104,37 +134,83 @@ const en = {
   "ownership.private": "privately owned",
   "ownership.nonprofit": "non-profit",
   "ownership.unknown": "ownership unknown",
+  "ownership.state.note": "Government sets leadership or editorial line",
+  "ownership.public.note": "Licence-fee funded, editorially independent",
+  "ownership.private.note": "Publisher or group in private hands",
+  "ownership.nonprofit.note": "Foundation, cooperative, donation-funded",
+  "ownership.unknown.note": "Not yet checked — applies to the vast majority",
 
-  "category.natural_disasters": "Natural disasters",
-  "category.conflicts": "Conflict",
-  "category.peace_talks": "Peace talks",
-  "category.politics": "Politics",
-  "category.diplomacy": "Diplomacy",
-  "category.accidents": "Accidents",
-  "category.sports": "Sport",
-  "category.culture": "Culture",
-  "category.art": "Art",
+  // Quellen. `data/connectors.json` beschreibt Struktur (Kennung, Zustand),
+  // nicht Sprache — die Beschriftungen gehören hierher.
+  "connector.gdelt-en": "GDELT · English",
+  "connector.gdelt-en.note":
+    "Raw data every 15 minutes, around 850 articles per run. Locations taken straight from the article text.",
+  "connector.gdelt-tr": "GDELT · 64 further languages",
+  "connector.gdelt-tr.note":
+    "Machine-translated stream, around 3,100 articles per run. Carries most of the coverage outside the English-speaking world.",
+  "connector.rss": "Own press register",
+  "connector.rss.note":
+    "Curated feeds per country, for regions where GDELT is thin. In progress.",
+
+  "category.conflict_war_peace": "Conflict, war & peace",
+  "category.disaster_accident": "Disaster & accident",
   "category.weather": "Weather",
-  "category.nature": "Nature & environment",
-  "category.other": "Other",
+  "category.environment": "Environment",
+  "category.crime_law": "Crime, law & justice",
+  "category.health": "Health",
+  "category.science_technology": "Science & technology",
+  "category.education": "Education",
+  "category.economy_business": "Economy & business",
+  "category.labour": "Labour",
+  "category.politics": "Politics",
+  "category.society": "Society",
+  "category.religion": "Religion",
+  "category.arts_culture": "Arts, culture & media",
+  "category.sport": "Sport",
+  "category.lifestyle_leisure": "Lifestyle & leisure",
+  "category.human_interest": "Human interest",
+  "category.other": "Unassigned",
 
 
   // ---------------------------------------------------------------- Overlay
   "info.title": "About this project",
   "info.lead1":
-    "Live Globe shows where news comes from — and how far it travels. Rather than being another news aggregator, it makes the movement of attention through the media landscape visible: who reports, who stays silent, and when a story crosses a border or a language.",
+    "Live Globe shows where news is made — and how far it travels. It makes the movement of attention visible: who reports, who stays silent, and when a story crosses a border or a language.",
   "info.lead2":
-    "This is a prompt for thought, not a research instrument. Assigning reports to places, topics and events remains an estimate — which is why every marker leads to the original source, so you can look for yourself. Article contents are not stored, only metadata and links.",
+    "This is a thinking tool, for me as much as for anyone who uses it. Placing a report on a location, a topic and an event stays an approximation. Every marker leads to the original source, so you can look for yourself. Article texts are never stored here — only linked.",
+
+  "info.beta.h": "Beta — how the data is gathered, and what that costs",
+  "info.beta.intro":
+    "Live Globe is a prototype. The way it collects news takes deliberate shortcuts, and those shortcuts leave marks on the globe. Better to name them than to let them pass as findings.",
+  "info.beta.method1":
+    "<strong>It is a sample, not a complete picture.</strong> Every 15 minutes we read what GDELT has seen across 65 languages — but we keep only a handful of stories per country per round. Without that limit the United States and Britain would fill half the globe and the rest would stay dark. The price is that a lot of real reporting never appears here.",
+  "info.beta.method2":
+    "<strong>We forget quickly.</strong> Article details are deleted after eight days. What stays is much smaller: which newsroom reported which event, and when. That is enough to replay how a story travelled, months later, without keeping anyone\u2019s text.",
+  "info.beta.method3":
+    "<strong>The grouping is done by software.</strong> Whether two reports describe the same event is decided from place, time, wording and names. That is an estimate, not a judgement.",
+  "info.beta.folgeH": "What follows from it",
+  "info.beta.folge1":
+    "<strong>A quiet country may be quiet for two very different reasons</strong> — little is reported there, or we have not found its newsrooms yet. You cannot tell the two apart by looking, and neither can we.",
+  "info.beta.folge2":
+    "Some newsroom markers sit in the middle of a country instead of at an address, because that is all we know about them.",
+  "info.beta.folge3":
+    "Some sources are not newsrooms at all, but sites that republish other people\u2019s articles. We are sorting them out one by one.",
+  "info.beta.folge4":
+    "One large event sometimes appears as several small ones, because the software did not notice they belong together.",
+  "info.beta.folge5":
+    "A few entries are simply wrong — a wrong name, a wrong country.",
+  "info.beta.schluss":
+    "We would rather show you the gaps than pretend they are not there.",
 
   "info.inspiration.h": "Where the idea comes from",
   "info.inspiration.p1":
-    "The starting point is <a href=\"https://radio.garden/\" target=\"_blank\" rel=\"noopener\">radio.garden</a> — a globe with radio stations standing where they broadcast. I cite it regularly in my UX/UI teaching as an example of how much a representation can achieve beyond listing the data. The same stations in a table would be a directory. On the globe they become an experience of nearness and distance: you turn the sphere and hear how far away the world sounds.",
+    "A globe makes a remarkable interface, and <a href=\"https://radio.garden\" target=\"_blank\" rel=\"noopener\">radio.garden</a> uses it beautifully: radio stations appear at the place they broadcast from. I use it regularly in my UX/UI teaching as an example of how much the right representation can do beyond simply listing data. A globe makes nearness and distance tangible — you turn it and meet the time zone, the language, the rhythm of another country. All twenty-four hours are happening right now.",
   "info.inspiration.p2":
-    "Live Globe carries that idea over to the news. Radio stations become media outlets, the broadcast area becomes the place where something happened. The question behind it stays the same — what does a map show that a list cannot?",
+    "Live Globe carries that idea over to the news. Putting an event on the map makes it immediate. The question behind it stays the same: what does a map show that a list cannot? What does the picture carry that is more than the sum of its parts?",
 
   "info.responsible.h": "Responsible",
   "info.responsible.p":
-    '<a href="https://atelier-perisset.ch/" target="_blank" rel="noopener">Boris Périsset</a>' +
+    '<a href="https://www.atelier-perisset.ch" target="_blank" rel="noopener">Boris Périsset</a>' +
     " · concept, design and implementation.",
 
   "info.thanks.h": "This site would not exist without these projects",
@@ -192,9 +268,16 @@ const de: Partial<Record<keyof typeof en, string>> = {
   "nav.info": "Über dieses Projekt",
   "nav.close": "Schliessen",
   "nav.globe": "Weltkugel mit Nachrichten-Pins",
+  "nav.beta": "Beta — wie die Daten entstehen, und was das kostet",
 
   "filter.all": "Alle",
   "filter.aria": "Rubriken filtern",
+
+  "map.group": "{n} Ereignisse – näher heran",
+  "map.single": "Meldungen öffnen",
+
+  "replays.label": "Weiteste Verbreitung",
+  "replays.aria": "Ereignisse, deren Replay sich lohnt",
 
   "status.loading": "Lade Meldungen …",
   "status.noSources": "Alle Quellen abgewählt — nichts anzuzeigen.",
@@ -214,6 +297,22 @@ const de: Partial<Record<keyof typeof en, string>> = {
   "panel.unrated": "nicht eingestuft",
   "panel.unknownSource": "Unbekannte Quelle",
   "panel.andMore": "und {n} weitere",
+
+  "replay.open": "Replay",
+  "replay.aria": "Replay: wie sich dieses Ereignis verbreitet hat",
+  "replay.play": "Abspielen",
+  "replay.pause": "Pause",
+  "replay.again": "Nochmal",
+  "replay.close": "Replay schliessen",
+  "replay.outlets": "Medien",
+  "replay.countries": "Länder",
+  "replay.languages": "Sprachen",
+  "replay.regions": "Weltregionen",
+  "replay.loading": "Lade Bögen …",
+  "replay.none": "Für dieses Ereignis ist noch kein Medium verortet.",
+  "replay.noSeat": "{n} weitere mitgezählt — Sitz unbekannt, deshalb nicht gezeichnet",
+  "replay.geoLand": "{n} sitzen auf einer Landesmitte, nicht auf einer Redaktion.",
+  "replay.geoRegion": "{n} sitzen auf einer Regionsmitte.",
 
   "count.outlet": "{n} Medium",
   "count.outlets": "{n} Medien",
@@ -269,38 +368,82 @@ const de: Partial<Record<keyof typeof en, string>> = {
   "ownership.private": "privatwirtschaftlich",
   "ownership.nonprofit": "gemeinnützig",
   "ownership.unknown": "Trägerschaft unbekannt",
+  "ownership.state.note": "Regierung bestimmt Leitung oder Linie",
+  "ownership.public.note": "Gebührenfinanziert, redaktionell unabhängig",
+  "ownership.private.note": "Verlag oder Konzern in Privatbesitz",
+  "ownership.nonprofit.note": "Stiftung, Genossenschaft, Spendenfinanzierung",
+  "ownership.unknown.note": "Noch nicht geprüft – betrifft die grosse Mehrheit",
 
-  "category.natural_disasters": "Naturkatastrophen",
-  "category.conflicts": "Konflikte",
-  "category.peace_talks": "Friedensgespräche",
-  "category.politics": "Politik",
-  "category.diplomacy": "Diplomatie",
-  "category.accidents": "Unfälle",
-  "category.sports": "Sport",
-  "category.culture": "Kultur",
-  "category.art": "Kunst",
+  "connector.gdelt-en": "GDELT · englischsprachig",
+  "connector.gdelt-en.note":
+    "Rohdaten alle 15 Minuten, rund 850 Artikel je Lauf. Ortsangaben direkt aus dem Artikeltext.",
+  "connector.gdelt-tr": "GDELT · 64 weitere Sprachen",
+  "connector.gdelt-tr.note":
+    "Maschinell übersetzter Strom, rund 3'100 Artikel je Lauf. Trägt den grössten Teil der Abdeckung ausserhalb des englischen Sprachraums.",
+  "connector.rss": "Eigenes Presseregister",
+  "connector.rss.note":
+    "Kuratierte Feeds pro Land, für Regionen mit dünner GDELT-Abdeckung. In Arbeit.",
+
+  "category.conflict_war_peace": "Konflikt & Frieden",
+  "category.disaster_accident": "Katastrophen & Unfälle",
   "category.weather": "Wetter",
-  "category.nature": "Natur & Umwelt",
+  "category.environment": "Umwelt",
+  "category.crime_law": "Kriminalität & Justiz",
+  "category.health": "Gesundheit",
+  "category.science_technology": "Wissenschaft & Technik",
+  "category.education": "Bildung",
+  "category.economy_business": "Wirtschaft",
+  "category.labour": "Arbeit",
+  "category.politics": "Politik",
+  "category.society": "Gesellschaft",
+  "category.religion": "Religion",
+  "category.arts_culture": "Kultur & Medien",
+  "category.sport": "Sport",
+  "category.lifestyle_leisure": "Lifestyle & Freizeit",
+  "category.human_interest": "Menschliches",
   "category.other": "Übriges",
 
 
   // ---------------------------------------------------------------- Overlay
   "info.title": "Über dieses Projekt",
   "info.lead1":
-    "Live Globe zeigt, wo Nachrichten herkommen — und wie weit sie reisen. Statt eine weitere Nachrichtensammlung zu sein, macht die Seite die Bewegung von Aufmerksamkeit durch die Medienlandschaft sichtbar: wer berichtet, wer schweigt, und wann eine Meldung Länder- und Sprachgrenzen überschreitet.",
+    "Live Globe zeigt, wo Nachrichten entstehen – und wohin sie reisen. Die Bewegung von Aufmerksamkeit in der Medienlandschaft wird sichtbar: wer berichtet, wer schweigt, und wann ein Ereignis eine Landes- oder Sprachgrenze überschreitet.",
   "info.lead2":
-    "Das ist ein Denkanstoss, keine Forschungsarbeit. Die Zuordnung von Meldungen zu Orten, Rubriken und Ereignissen bleibt eine Schätzung — jeder Pin führt deshalb zur Originalquelle, damit man selbst nachsehen kann. Artikelinhalte werden nicht gespeichert, nur Metadaten und Links.",
+    "Das ist ein Denkanstoss – für mich selbst und für alle, die ihn nutzen. Die Zuordnung von Meldungen zu Orten, Themen und Ereignissen bleibt eine Annäherung. Jede Markierung führt zur Originalquelle, damit du selbst nachschauen kannst. Die Inhalte der Artikel werden nicht gespeichert, sondern nur verlinkt.",
 
-  "info.inspiration.h": "Inspiration",
+  "info.beta.h": "Beta — wie die Daten entstehen, und was das kostet",
+  "info.beta.intro":
+    "Live Globe ist ein Prototyp. Die Art, wie hier Nachrichten gesammelt werden, nimmt bewusst Abkürzungen – und die hinterlassen Spuren auf der Kugel. Besser, sie zu benennen, als sie als Befund durchgehen zu lassen.",
+  "info.beta.method1":
+    "<strong>Es ist eine Stichprobe, kein vollständiges Bild.</strong> Alle 15 Minuten lesen wir, was GDELT in 65 Sprachen gesehen hat – behalten aber nur eine Handvoll Meldungen pro Land und Durchgang. Ohne diese Grenze füllten die USA und Grossbritannien die halbe Kugel, und der Rest bliebe dunkel. Der Preis: Viel echte Berichterstattung taucht hier nie auf.",
+  "info.beta.method2":
+    "<strong>Wir vergessen schnell.</strong> Acht Tage nach dem Erscheinen verschwinden die Artikelangaben. Was bleibt, ist viel kleiner: welche Redaktion wann über welches Ereignis berichtet hat. Das genügt, um Monate später nachzuspielen, wie eine Nachricht um die Welt gewandert ist – ohne den Text von irgendjemandem aufzubewahren.",
+  "info.beta.method3":
+    "<strong>Die Bündelung macht eine Software.</strong> Ob zwei Meldungen dasselbe Ereignis beschreiben, entscheidet sie aus Ort, Zeit, Wortwahl und Namen. Das ist eine Schätzung, kein Urteil.",
+  "info.beta.folgeH": "Was daraus folgt",
+  "info.beta.folge1":
+    "<strong>Ein stummes Land kann aus zwei sehr verschiedenen Gründen stumm sein</strong> – weil dort wenig berichtet wird, oder weil wir seine Redaktionen noch nicht gefunden haben. Von aussen sieht man den Unterschied nicht. Wir übrigens auch nicht.",
+  "info.beta.folge2":
+    "Manche Redaktionen sitzen in der Mitte ihres Landes statt an einer Adresse, weil wir mehr nicht über sie wissen.",
+  "info.beta.folge3":
+    "Manche Quellen sind gar keine Redaktionen, sondern Seiten, die fremde Artikel weiterverbreiten. Wir sortieren sie nach und nach aus.",
+  "info.beta.folge4":
+    "Ein grosses Ereignis erscheint manchmal als mehrere kleine, weil die Software nicht gemerkt hat, dass sie zusammengehören.",
+  "info.beta.folge5":
+    "Ein paar Einträge sind schlicht falsch – ein falscher Name, ein falsches Land.",
+  "info.beta.schluss":
+    "Uns ist lieber, die Lücken zu zeigen, als so zu tun, als gäbe es sie nicht.",
+
+  "info.inspiration.h": "Woher die Idee kommt",
   "info.inspiration.p1":
-    "Der Ausgangspunkt ist <a href=\"https://radio.garden/\" target=\"_blank\" rel=\"noopener\">radio.garden</a> — eine Weltkugel, auf der Radiostationen dort stehen, wo sie senden. Ich zitiere die Seite regelmässig in meinem UX/UI-Unterricht als Beispiel dafür, wie viel eine Darstellung leisten kann, die über das Auflisten der Daten hinausgeht. Dieselben Sender in einer Tabelle wären ein Verzeichnis. Auf dem Globus werden sie zu einer Erfahrung von Nähe und Entfernung: Man dreht die Kugel und hört, wie weit weg die Welt klingt.",
+    "Die Weltkugel als Oberfläche ist ein äusserst eindrückliches Objekt, und <a href=\"https://radio.garden\" target=\"_blank\" rel=\"noopener\">radio.garden</a> nutzt sie wunderbar: Dort erscheinen Radiosender an dem Ort, von dem aus sie senden. Ich verwende radio.garden regelmässig in meinem UX/UI-Unterricht als Beispiel dafür, wie viel die richtige Darstellung über die blosse Auflistung von Daten hinaus leisten kann. Mit dem Globus werden Nähe und Distanz erfahrbar: Man dreht die Kugel und lernt die Zeitzone, die Sprache, den Rhythmus eines anderen Landes kennen. 24 Stunden sind jetzt.",
   "info.inspiration.p2":
-    "Live Globe überträgt diesen Gedanken auf Nachrichten. Aus Radiostationen werden Medienhäuser, aus dem Sendegebiet der Ort des Geschehens. Die Frage dahinter bleibt dieselbe — was zeigt eine Karte, das eine Liste nicht zeigen kann?",
+    "Live Globe überträgt diese Idee auf die Nachrichten. Die geografische Verortung macht Ereignisse unmittelbar. Die Frage dahinter bleibt dieselbe: Was zeigt eine Karte, was eine Liste nicht zeigen kann? Was vermittelt die visuelle Darstellung, das mehr ist als die Summe ihrer Teile?",
 
   "info.responsible.h": "Verantwortlich",
   "info.responsible.p":
-    '<a href="https://atelier-perisset.ch/" target="_blank" rel="noopener">Boris Périsset</a>' +
-    " · Konzept, Gestaltung und Umsetzung.",
+    '<a href="https://www.atelier-perisset.ch" target="_blank" rel="noopener">Boris Périsset</a>' +
+    " · Konzept, Design und Umsetzung.",
 
   "info.thanks.h": "Ohne diese Projekte gäbe es die Seite nicht",
   "info.thanks.intro":

@@ -31,29 +31,33 @@
       "status": "planned",
       "defaultOn": false,
       "note": "Kuratierte Feeds pro Land, für Regionen mit dünner GDELT-Abdeckung. In Arbeit."
-    },
-    {
-      "id": "ground-news",
-      "name": "Ground News",
-      "status": "unavailable",
-      "defaultOn": false,
-      "url": "https://ground.news/",
-      "note": "Keine öffentliche Schnittstelle. Die Einstufungen sind ein kostenpflichtiges Produkt; wir bilden die Skala nach, nicht die Daten."
-    },
-    {
-      "id": "particle-news",
-      "name": "Particle News",
-      "status": "unavailable",
-      "defaultOn": false,
-      "url": "https://particle.news/",
-      "note": "Reine App ohne öffentliche Schnittstelle."
     }
   ],
   "ownership": [
-    { "id": "state",     "label": "Staatlich kontrolliert", "note": "Regierung bestimmt Leitung oder Linie" },
-    { "id": "public",    "label": "Öffentlich-rechtlich",   "note": "Gebührenfinanziert, redaktionell unabhängig" },
-    { "id": "private",   "label": "Privatwirtschaftlich",   "note": "Verlag oder Konzern in Privatbesitz" },
-    { "id": "nonprofit", "label": "Gemeinnützig",           "note": "Stiftung, Genossenschaft, Spendenfinanzierung" },
-    { "id": "unknown",   "label": "Nicht eingestuft",       "note": "Noch nicht geprüft – betrifft die grosse Mehrheit" }
+    {
+      "id": "state",
+      "label": "Staatlich kontrolliert",
+      "note": "Regierung bestimmt Leitung oder Linie"
+    },
+    {
+      "id": "public",
+      "label": "Öffentlich-rechtlich",
+      "note": "Gebührenfinanziert, redaktionell unabhängig"
+    },
+    {
+      "id": "private",
+      "label": "Privatwirtschaftlich",
+      "note": "Verlag oder Konzern in Privatbesitz"
+    },
+    {
+      "id": "nonprofit",
+      "label": "Gemeinnützig",
+      "note": "Stiftung, Genossenschaft, Spendenfinanzierung"
+    },
+    {
+      "id": "unknown",
+      "label": "Nicht eingestuft",
+      "note": "Noch nicht geprüft – betrifft die grosse Mehrheit"
+    }
   ]
 }

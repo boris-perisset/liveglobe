@@ -1,7 +1,25 @@
-import type { Article, CategoryDef, CategoryId, EventGroup, TargetLang } from "../types";
+import type { Arc, Article, CategoryDef, CategoryId, EventGroup, TargetLang } from "../types";
 import { translate } from "../data/translate";
 import { locale, t, tn, type TextKey } from "../i18n";
 import { gruppiereNachEreignis } from "../data/api";
+
+/**
+ * Was das Replay braucht, um loszulaufen.
+ *
+ * Der Ort kommt aus dem **ersten Artikel des Ereignisses**, nicht aus der
+ * angeklickten Rasterzelle: Ein Ereignis hat genau einen Ort, und die Zelle
+ * kann ganz woanders liegen. Sonst startete die Kamera neben dem Geschehen.
+ */
+export interface ReplayAnstoss {
+  eventId: number;
+  /** Die Bögen, schon geladen — der Klick startet damit ohne Wartezeit. */
+  arcs: Arc[];
+  lat: number;
+  lon: number;
+  titel: string;
+  ort: string;
+  farbe: string;
+}
 
 export class TeaserPanel {
   private el: HTMLElement;
@@ -12,11 +30,21 @@ export class TeaserPanel {
   /** Ortsname des angeklickten Pins — Rückfall, solange es keine Ereignisse gibt. */
   private ort = "";
 
+  /**
+   * Der Replay-Knopf erscheint nur, wenn das Panel **genau ein** Ereignis
+   * zeigt. Bei mehreren wäre nicht bestimmt, welches abgespielt würde, und ein
+   * Knopf, der eines davon errät, ist schlechter als keiner.
+   */
+  private replayEl: HTMLButtonElement;
+  private replayDaten: ReplayAnstoss | null = null;
+
   constructor(
     container: HTMLElement,
     categories: CategoryDef[],
     /** Wird beim Schliessen gerufen — die Karte hebt dann ihre Hervorhebung auf. */
     private onClose?: () => void,
+    /** Wird beim Klick auf „Replay" gerufen; fehlt er, gibt es den Knopf nicht. */
+    private onReplay?: (anstoss: ReplayAnstoss) => void,
   ) {
     this.labels = new Map(categories.map((c) => [c.id, c]));
     container.innerHTML = `
@@ -25,14 +53,20 @@ export class TeaserPanel {
           <h2 class="panel__title"></h2>
           <p class="panel__sub"></p>
         </div>
-        <button class="panel__close" type="button" aria-label="Schliessen">×</button>
+        <button class="panel__close" type="button" aria-label="${escapeAttr(t("nav.close"))}">×</button>
       </header>
+      <button class="panel__replay" type="button" hidden></button>
       <div class="panel__list"></div>`;
     this.el = container;
     this.titleEl = container.querySelector(".panel__title")!;
     this.subEl = container.querySelector(".panel__sub")!;
     this.listEl = container.querySelector(".panel__list")!;
     container.querySelector(".panel__close")!.addEventListener("click", () => this.close());
+    this.replayEl = container.querySelector(".panel__replay")!;
+    this.replayEl.textContent = t("replay.open");
+    this.replayEl.addEventListener("click", () => {
+      if (this.replayDaten) this.onReplay?.(this.replayDaten);
+    });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") this.close();
     });
@@ -41,6 +75,7 @@ export class TeaserPanel {
   /** Öffnet mit dem Ortsnamen als vorläufiger Überschrift; `render` ersetzt sie. */
   open(ort: string) {
     this.ort = ort;
+    this.replayAus();
     this.titleEl.textContent = ort;
     this.subEl.textContent = "";
     this.listEl.innerHTML = `<p class="panel__hint">${escapeHtml(t("panel.loading"))}</p>`;
@@ -64,6 +99,7 @@ export class TeaserPanel {
 
   render(articles: Article[], sprache: TargetLang = "off") {
     if (articles.length === 0) {
+      this.replayAus();
       this.titleEl.textContent = this.ort;
       this.subEl.textContent = "";
       this.listEl.innerHTML = `<p class="panel__hint">${escapeHtml(t("panel.empty"))}</p>`;
@@ -121,6 +157,7 @@ export class TeaserPanel {
    */
   private kopfSetzen(gruppen: EventGroup[], anzahl: number, articles: Article[]) {
     const eines = gruppen.length === 1 ? gruppen[0] : null;
+    this.replaySetzen(eines);
 
     if (eines?.title) {
       this.titleEl.textContent = eines.title;
@@ -141,6 +178,62 @@ export class TeaserPanel {
     // Kein Ereignis zugeordnet — die Darstellung von vorher.
     this.titleEl.textContent = orteText(articles);
     this.subEl.textContent = meldungenText(anzahl);
+  }
+
+  private replayAus() {
+    this.replayDaten = null;
+    this.replayEl.hidden = true;
+  }
+
+  /**
+   * Alles bereitlegen — aber den Knopf **noch nicht** zeigen.
+   *
+   * `events.outlet_count` zählt alle berichtenden Medien, auch die ohne
+   * bekannten Sitz. `event_arcs()` zeichnet nur die mit Koordinate. Ein
+   * Ereignis mit „9 Medien" kann also zwei Bögen ergeben — und ein Knopf, der
+   * daraufhin ein leeres Replay öffnet, verspricht etwas, was er nicht hält.
+   *
+   * Deshalb entscheidet nicht die Zahl aus dem Panel, sondern die geladenen
+   * Bögen selbst. Sichtbar wird der Knopf erst in `replayAnbieten`.
+   */
+  private replaySetzen(g: EventGroup | null) {
+    const erster = g?.articles[0];
+    if (!this.onReplay || !g?.id || !erster) {
+      this.replayAus();
+      return;
+    }
+    this.replayDaten = {
+      eventId: g.id,
+      arcs: [],
+      lat: erster.lat,
+      lon: erster.lon,
+      titel: g.title ?? erster.title,
+      ort: g.locationName ?? erster.location_name,
+      farbe: this.labels.get(erster.category)?.color ?? "#8a8f98",
+    };
+    this.replayEl.hidden = true;
+  }
+
+  /**
+   * Die Bögen sind da — jetzt entscheidet sich, ob es den Knopf gibt.
+   *
+   * Zwei Bögen sind das Mindeste, unter dem eine Verbreitung noch eine ist.
+   * Wird nichts angeboten, bleibt der Knopf weg; eine Erklärung dafür braucht
+   * es nicht, denn niemand hat etwas erwartet.
+   *
+   * Die Bögen werden mitgegeben und nicht nur gezählt: Der Klick startet dann
+   * ohne Ladezustand, und das Replay beginnt in dem Augenblick, in dem man es
+   * anstösst.
+   */
+  replayAnbieten(arcs: Arc[] | null) {
+    // Ob genug **zeichenbare** Bögen dabei sind, hat der Aufrufer geprüft — er
+    // kennt die Regel, und sie steht nur an einer Stelle.
+    if (!this.replayDaten || !arcs || arcs.length < 2) {
+      this.replayEl.hidden = true;
+      return;
+    }
+    this.replayDaten.arcs = arcs;
+    this.replayEl.hidden = false;
   }
 
   private gruppenKopf(g: EventGroup): HTMLElement {
@@ -216,7 +309,7 @@ export class TeaserPanel {
     el.innerHTML = `
       ${img}
       <div class="card__body">
-        <span class="card__cat">${escapeHtml(cat?.label ?? "Übriges")}</span>
+        <span class="card__cat">${escapeHtml(rubrik(a.category))}</span>
         <h3 class="card__title"></h3>
         ${a.teaser ? '<p class="card__teaser"></p>' : ""}
         <p class="card__meta">
@@ -249,6 +342,21 @@ export class TeaserPanel {
  * gezählt, was wirklich da ist: der häufigste Ortsname führt, und liegt mehr
  * als einer vor, sagt „u. a." offen, dass die Zelle mehrere Orte umfasst.
  */
+/**
+ * Der Rubrikname in der Sprache der Oberfläche.
+ *
+ * Vorher stand hier `cat.label` aus `data/category-map.json` — und die Datei ist
+ * deutsch, weil sie das **Zuordnungsvokabular** beschreibt und nicht die
+ * Oberfläche. Folge: Die Rubrik in der Artikelkarte blieb deutsch, auch wenn
+ * alles daneben englisch war.
+ *
+ * Beschriftungen gehören in den Sprachbestand, Zuordnungsregeln in die
+ * Datendatei. Dass beide zufällig ein Feld `label` teilen, war die Falle.
+ */
+function rubrik(id: CategoryId): string {
+  return t(`category.${id}` as TextKey);
+}
+
 function orteText(articles: Article[]): string {
   const zaehler = new Map<string, number>();
   for (const a of articles) {
