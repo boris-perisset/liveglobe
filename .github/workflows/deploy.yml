@@ -1,8 +1,23 @@
 name: Build & Deploy nach Hostpoint
 
+# NICHT automatisch. Deployt wird von Hand über SSH und rsync
+# (`npm run deploy:hostpoint`) — ein Weg, ein Zeitpunkt, eine Entscheidung.
+#
+# Der Auslöser `push: branches: [main]` stand hier bis zum 01.09.2026 und ist
+# absichtlich entfernt. Zwei Gründe:
+#
+#   1. Er hätte jeden Push sofort veröffentlicht — auch einen, der nur sichern
+#      sollte. Und er deployt mit `rsync --delete`.
+#   2. Er ist bei jedem Push gescheitert, weil die sechs Angaben unten nie
+#      gesetzt wurden. Ein Repo, das immer rot leuchtet, ist ein Repo, in dem
+#      der nächste echte Fehler niemandem mehr auffällt.
+#
+# Das Rezept bleibt stehen: Es beschreibt den vollständigen Deploy-Weg. Wer es
+# benutzen will, setzt in den GitHub-Einstellungen
+#   Variablen:    SUPABASE_URL, HOSTPOINT_HOST, HOSTPOINT_USER, HOSTPOINT_PATH
+#   Geheimnisse:  SUPABASE_ANON_KEY, HOSTPOINT_SSH_KEY
+# und startet ihn unter „Actions" von Hand.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
